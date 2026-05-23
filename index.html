@@ -1503,20 +1503,38 @@ function generateShare() {
     }
   });
 
-  const compact = {
-    n: state.nickname || '',
-    t: state.playlistTitle || '',
-    c: state.selectedCharacter || 1,
-    s: state.songs.map(song => [
-      song.videoId,
-      song.title,
-      song.memo || '',
-      Math.round(song.x || 0),
-      Math.round(song.y || 0)
-    ])
-  };
+  // 초압축 배열 구조
+  // [캐릭터번호, 닉네임, 제목, 노래배열]
+  const payload = [
+    state.selectedCharacter || 1,
+    state.nickname || '',
+    state.playlistTitle || '',
+    state.songs.map(song => {
+      const x = Math.round(song.x || 0).toString(36);
+      const y = Math.round(song.y || 0).toString(36);
 
-  const json = JSON.stringify(compact);
+      // 메모가 있으면 [videoId, title, memo, x36, y36]
+      if (song.memo && song.memo.trim()) {
+        return [
+          song.videoId,
+          song.title,
+          song.memo,
+          x,
+          y
+        ];
+      }
+
+      // 메모가 없으면 [videoId, title, x36, y36]
+      return [
+        song.videoId,
+        song.title,
+        x,
+        y
+      ];
+    })
+  ];
+
+  const json = JSON.stringify(payload);
   const encoded = LZString.compressToEncodedURIComponent(json);
   const url = `${location.origin}${location.pathname}?data=${encoded}`;
 
@@ -1525,7 +1543,7 @@ function generateShare() {
   box.textContent = '클릭하여 링크 복사 — ' + url.slice(0, 64) + (url.length > 64 ? '...' : '');
   box.classList.add('visible');
 
-  showToast('압축된 공유 링크가 생성됐어요');
+  showToast('압축 공유 링크가 생성됐어요');
 }
 
 function copyShare() {
@@ -1540,27 +1558,67 @@ function copyShare() {
 }
 
 function decodeShareData(raw) {
-  // 1) 새 압축 공유 링크 방식
+  // 1) 새 초압축 배열 방식
   try {
     if (window.LZString) {
       const json = LZString.decompressFromEncodedURIComponent(raw);
 
       if (json) {
-        const compact = JSON.parse(json);
+        const data = JSON.parse(json);
 
-        return {
-          nickname: compact.n || '',
-          playlistTitle: compact.t || '',
-          selectedCharacter: compact.c || 1,
-          songs: (compact.s || []).map((item, index) => ({
-            id: Date.now().toString() + '_' + index,
-            videoId: item[0],
-            title: item[1],
-            memo: item[2] || '',
-            x: item[3] || 80,
-            y: item[4] || 120
-          }))
-        };
+        // 새 배열 구조: [character, nickname, title, songs]
+        if (Array.isArray(data)) {
+          const selectedCharacter = data[0] || 1;
+          const nickname = data[1] || '';
+          const playlistTitle = data[2] || '';
+          const songsRaw = data[3] || [];
+
+          return {
+            selectedCharacter,
+            nickname,
+            playlistTitle,
+            songs: songsRaw.map((item, index) => {
+              // 메모 있음: [videoId, title, memo, x36, y36]
+              if (item.length === 5) {
+                return {
+                  id: Date.now().toString() + '_' + index,
+                  videoId: item[0],
+                  title: item[1],
+                  memo: item[2] || '',
+                  x: parseInt(item[3], 36) || 80,
+                  y: parseInt(item[4], 36) || 120
+                };
+              }
+
+              // 메모 없음: [videoId, title, x36, y36]
+              return {
+                id: Date.now().toString() + '_' + index,
+                videoId: item[0],
+                title: item[1],
+                memo: '',
+                x: parseInt(item[2], 36) || 80,
+                y: parseInt(item[3], 36) || 120
+              };
+            })
+          };
+        }
+
+        // 이전 compact object 방식도 복원
+        if (data && data.s) {
+          return {
+            nickname: data.n || '',
+            playlistTitle: data.t || '',
+            selectedCharacter: data.c || 1,
+            songs: (data.s || []).map((item, index) => ({
+              id: Date.now().toString() + '_' + index,
+              videoId: item[0],
+              title: item[1],
+              memo: item[2] || '',
+              x: item[3] || 80,
+              y: item[4] || 120
+            }))
+          };
+        }
       }
     }
   } catch(e) {

@@ -571,7 +571,8 @@ html, body {
   box-shadow: 0 24px 80px rgba(110,125,170,0.16), inset 0 1px 0 rgba(255,255,255,0.82);
   padding: 12px;
   cursor: pointer;                  /* 기본은 클릭 = 링크 열기 */
-  user-select: none;
+  touch-action: none;
+  will-change: left, top, transform;
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.22s ease, box-shadow 0.22s ease;
   overflow: hidden;
@@ -1309,89 +1310,119 @@ function renderSongPanel() {
 function makeDraggable(el, song) {
   let pressed = false;
   let dragging = false;
+  let moved = false;
   let holdTimer = null;
-  let sx, sy, ox, oy;
-  const HOLD_MS = 280;       // 꾹 누름 임계값
-  const MOVE_THRESHOLD = 6;  // 이만큼 움직이면 즉시 드래그 모드
+  let sx = 0, sy = 0, ox = 0, oy = 0;
+  let startTime = 0;
 
-  function down(e) {
-    // 삭제 버튼은 단독 동작
-    if (e.target.closest('.c-del')) return;
+  const TAP_MAX_MS = 180;        // 이 시간 안에 손을 떼면 링크 열기
+  const HOLD_MS = 220;           // 이 시간 이상 누르면 드래그 준비
+  const MOVE_THRESHOLD = 5;      // 이 정도 움직이면 드래그
 
-    pressed = true;
-    dragging = false;
-    const pt = e.touches ? e.touches[0] : e;
-    sx = pt.clientX; sy = pt.clientY;
-    ox = parseInt(el.style.left) || 0;
-    oy = parseInt(el.style.top)  || 0;
-
-    holdTimer = setTimeout(() => {
-      if (pressed) enterDrag();
-    }, HOLD_MS);
-  }
-
-  function enterDrag() {
-    if (dragging) return;
-    dragging = true;
-    el.style.zIndex = '50';
-    el.classList.add('dragging');
-    // 드래그 중에는 orbit 일시 정지 (드래그가 막히지 않도록)
+  function pauseOrbitForDrag() {
     if (orbitActive && orbitRAF) {
       cancelAnimationFrame(orbitRAF);
       orbitRAF = null;
     }
   }
 
+  function down(e) {
+    if (e.target.closest('.c-del')) return;
+
+    pressed = true;
+    dragging = false;
+    moved = false;
+    startTime = Date.now();
+
+    const pt = e.touches ? e.touches[0] : e;
+    sx = pt.clientX;
+    sy = pt.clientY;
+    ox = parseInt(el.style.left) || 0;
+    oy = parseInt(el.style.top) || 0;
+
+    holdTimer = setTimeout(() => {
+      if (!pressed) return;
+      dragging = true;
+      pauseOrbitForDrag();
+      el.classList.add('dragging');
+      el.style.zIndex = '60';
+    }, HOLD_MS);
+
+    e.preventDefault();
+  }
+
   function move(e) {
     if (!pressed) return;
+
     const pt = e.touches ? e.touches[0] : e;
     const dx = pt.clientX - sx;
     const dy = pt.clientY - sy;
 
-    // 빠른 스와이프도 드래그로 인식
-    if (!dragging && (Math.abs(dx) > MOVE_THRESHOLD || Math.abs(dy) > MOVE_THRESHOLD)) {
-      clearTimeout(holdTimer);
-      enterDrag();
+    if (Math.abs(dx) > MOVE_THRESHOLD || Math.abs(dy) > MOVE_THRESHOLD) {
+      moved = true;
     }
 
-    if (dragging) {
-      el.style.left = (ox + dx) + 'px';
-      el.style.top  = (oy + dy) + 'px';
-      e.preventDefault();
+    if (moved && !dragging) {
+      clearTimeout(holdTimer);
+      dragging = true;
+      pauseOrbitForDrag();
+      el.classList.add('dragging');
+      el.style.zIndex = '60';
     }
+
+    if (!dragging) return;
+
+    el.style.left = (ox + dx) + 'px';
+    el.style.top = (oy + dy) + 'px';
+
+    e.preventDefault();
   }
 
-  function up() {
+  function up(e) {
     if (!pressed) return;
+
     clearTimeout(holdTimer);
+
+    const pressTime = Date.now() - startTime;
     const wasDragging = dragging;
+
     pressed = false;
     dragging = false;
 
-    if (wasDragging) {
+    if (wasDragging || moved) {
       el.classList.remove('dragging');
       el.style.zIndex = '';
+
       song.x = parseInt(el.style.left) || 0;
-      song.y = parseInt(el.style.top)  || 0;
+      song.y = parseInt(el.style.top) || 0;
+
       saveDraft();
-      // orbit 재개
+
       if (orbitActive && !orbitRAF) startOrbit();
-    } else {
-      // 짧은 클릭 → YouTube 새 창
+      return;
+    }
+
+    // 짧게 톡 눌렀을 때만 링크 열기
+    if (pressTime <= TAP_MAX_MS) {
       window.open(
         `https://www.youtube.com/watch?v=${song.videoId}`,
         '_blank',
         'noopener,noreferrer'
       );
     }
+
+    // 길게 눌렀지만 안 움직인 경우: 링크 열지 않음
+    e.preventDefault();
   }
 
-  el.addEventListener('mousedown',  down);
-  el.addEventListener('touchstart', down, { passive: true });
-  window.addEventListener('mousemove',  move, { passive: false });
-  window.addEventListener('touchmove',  move, { passive: false });
-  window.addEventListener('mouseup',    up);
-  window.addEventListener('touchend',   up);
+  el.addEventListener('mousedown', down, { passive: false });
+  el.addEventListener('touchstart', down, { passive: false });
+
+  window.addEventListener('mousemove', move, { passive: false });
+  window.addEventListener('touchmove', move, { passive: false });
+
+  window.addEventListener('mouseup', up);
+  window.addEventListener('touchend', up);
 }
 
 /* ═══════════════════════════════════════════

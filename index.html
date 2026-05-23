@@ -281,9 +281,10 @@ html, body {
 .character-bg,
 .character-cutout {
   position: absolute;
-  left: 50%; bottom: 2vh;
+  left: 50%;
+  bottom: -1vh;
   transform: translateX(-50%);
-  width: clamp(280px, 38vw, 580px);
+  width: clamp(420px, 48vw, 760px);
   height: auto;
   display: none;
 }
@@ -987,6 +988,7 @@ function loadImageWithFallback(imgEl, paths) {
 
   imgEl.onload = function() {
     imgEl.style.display = 'block';
+    imgEl.classList.add('is-loaded');
   };
 
   imgEl.onerror = next;
@@ -1111,7 +1113,29 @@ function showMain() {
     setTimeout(function() {
       const panel = document.getElementById('edit-panel');
       if (panel) panel.classList.add('open');
-    }, 300);
+    }, 250);
+  }
+}
+function showMain() {
+  document.getElementById('screen-select').classList.add('hidden');
+  document.getElementById('screen-main').classList.remove('hidden');
+
+  applyCharacter();
+  updateOverlay();
+  updatePanelInputs();
+  renderCards();
+
+  if (state.isViewOnly) {
+    document.getElementById('view-banner').classList.add('show');
+    document.getElementById('btn-edit').style.display = 'none';
+    document.getElementById('btn-orbit').style.display = 'none';
+    orbitActive = false;
+    toggleOrbit();
+  } else {
+    setTimeout(function() {
+      const panel = document.getElementById('edit-panel');
+      if (panel) panel.classList.add('open');
+    }, 250);
   }
 }
 
@@ -1133,13 +1157,22 @@ function goSelect() {
 ═══════════════════════════════════════════ */
 function applyCharacter() {
   const n = state.selectedCharacter || 1;
-  loadImageWithFallback(
-    document.getElementById('char-cutout'),
-    [`character_0${n}_cutout.png`, `character_0${n}.png`]
-  );
+
   loadImageWithFallback(
     document.getElementById('char-bg'),
-    [`character_0${n}_bg.png`, `character_0${n}.png`]
+    [
+      `character_0${n}_bg.png`,
+      `character_0${n}.png`
+    ]
+  );
+
+  loadImageWithFallback(
+    document.getElementById('char-cutout'),
+    [
+      `character_0${n}_cutout.png`,
+      `character_0${n}_transparent.png`,
+      `character_0${n}.png`
+    ]
   );
 }
 
@@ -1398,10 +1431,19 @@ function makeDraggable(el, song) {
    ORBIT
 ═══════════════════════════════════════════ */
 function toggleOrbit() {
+  if (state.songs.length === 0) {
+    showToast('노래를 먼저 추가해주세요');
+    const panel = document.getElementById('edit-panel');
+    if (panel) panel.classList.add('open');
+    return;
+  }
+
   orbitActive = !orbitActive;
   document.getElementById('btn-orbit').classList.toggle('active', orbitActive);
+
   const row = document.getElementById('orbit-row');
   if (row) row.classList.toggle('active', orbitActive);
+
   if (orbitActive) startOrbit();
   else stopOrbit();
 }

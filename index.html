@@ -19,7 +19,6 @@
   --surface:      rgba(255,255,255,0.42);
   --surface-hi:   rgba(255,255,255,0.72);
   --border:       rgba(255,255,255,0.70);
-  --border-soft:  rgba(0,0,0,0.07);
   --shadow:       0 8px 36px rgba(90,105,150,0.12);
   --shadow-lg:    0 24px 80px rgba(90,105,150,0.16);
   --blur:         blur(28px) saturate(180%);
@@ -29,16 +28,12 @@
   --text-3:       rgba(28,30,38,0.34);
   --accent:       #5b8dee;
   --accent-2:     #a78bfa;
-  --accent-3:     #f472b6;
   --r-card:       28px;
   --r-btn:        50px;
   --font-ui:      'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --font-logo:    'Playfair Display', Georgia, serif;
 }
 
-/* ═══════════════════════════════════════════
-   RESET
-═══════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
@@ -52,14 +47,13 @@ html, body {
 }
 
 /* ═══════════════════════════════════════════
-   BACKGROUND  (z: 1)
+   BACKGROUND (z:1)
 ═══════════════════════════════════════════ */
 #bg {
   position: fixed; inset: 0; z-index: 1;
   background: linear-gradient(148deg, #eceff8 0%, #f5f3fb 45%, #eff1f8 100%);
   overflow: hidden;
 }
-
 #bg-grid {
   position: absolute; inset: 0;
   background-image:
@@ -67,39 +61,30 @@ html, body {
     linear-gradient(90deg, rgba(80,95,140,0.052) 1px, transparent 1px);
   background-size: 58px 58px;
 }
-
 .blob {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
+  position: absolute; border-radius: 50%; pointer-events: none;
   animation: blobFloat ease-in-out infinite;
 }
 .blob-1 {
   width: 660px; height: 500px;
   background: radial-gradient(ellipse, rgba(130,170,255,0.20) 0%, transparent 68%);
-  top: -160px; left: -160px;
-  animation-duration: 22s;
+  top: -160px; left: -160px; animation-duration: 22s;
 }
 .blob-2 {
   width: 520px; height: 520px;
   background: radial-gradient(ellipse, rgba(255,155,210,0.17) 0%, transparent 68%);
-  bottom: -100px; right: -80px;
-  animation-duration: 28s; animation-delay: -8s;
+  bottom: -100px; right: -80px; animation-duration: 28s; animation-delay: -8s;
 }
 .blob-3 {
   width: 420px; height: 380px;
   background: radial-gradient(ellipse, rgba(175,155,255,0.15) 0%, transparent 68%);
-  top: 30%; left: 36%;
-  animation-duration: 19s; animation-delay: -5s;
+  top: 30%; left: 36%; animation-duration: 19s; animation-delay: -5s;
 }
-
 @keyframes blobFloat {
   0%, 100% { transform: translate(0, 0) scale(1); }
   33%       { transform: translate(28px, -22px) scale(1.04); }
   66%       { transform: translate(-18px, 22px) scale(0.97); }
 }
-
-/* grain */
 #grain {
   position: fixed; inset: 0; z-index: 2;
   pointer-events: none; opacity: 0.028;
@@ -118,153 +103,181 @@ html, body {
 .screen.hidden { opacity: 0; pointer-events: none; transform: scale(0.985); }
 
 /* ═══════════════════════════════════════════
-   SCREEN 1 — CHARACTER SELECT
+   SCREEN 1 — CHARACTER CAROUSEL
 ═══════════════════════════════════════════ */
 #screen-select {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 24px 50px;
-  overflow-y: auto;
+  padding: 30px 24px;
 }
 
 .s-logo {
   font-family: var(--font-logo);
-  font-style: italic;
-  font-weight: 500;
-  font-size: 2.1rem;
-  letter-spacing: -0.03em;
+  font-style: italic; font-weight: 500;
+  font-size: 2.1rem; letter-spacing: -0.03em;
   color: rgba(38,42,60,0.72);
-  margin-bottom: 7px;
+  margin-bottom: 6px;
 }
 
 .s-sub {
-  font-size: 0.875rem;
-  font-weight: 400;
-  color: var(--text-2);
-  letter-spacing: -0.01em;
-  margin-bottom: 44px;
+  font-size: 0.875rem; font-weight: 400;
+  color: var(--text-2); letter-spacing: -0.01em;
+  margin-bottom: 30px;
 }
 
-/* ── Character grid ── */
-.char-grid {
-  display: flex;
-  gap: 18px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 40px;
-}
-
-.char-card {
+/* ── Carousel ── */
+.carousel {
   position: relative;
-  width: 196px;
-  border-radius: 32px;
+  width: 100%;
+  max-width: 760px;
+  height: 460px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.car-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.car-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 270px;
+  height: 380px;
+  margin-left: -135px;
+  margin-top: -190px;
+  transition: transform 0.55s cubic-bezier(.4,0,.2,1),
+              opacity 0.45s ease,
+              filter 0.45s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* card body (glass) */
+.car-card {
+  width: 100%;
+  flex: 1;
+  border-radius: 36px;
   background: var(--surface);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.88);
-  cursor: pointer;
-  transition: transform 0.26s ease, box-shadow 0.26s ease, border-color 0.26s ease;
-  display: flex; flex-direction: column; align-items: center;
-  padding: 26px 16px 18px;
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.92);
+  position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 18px;
 }
-
-/* top gloss */
-.char-card::before {
+.car-card::before {
   content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 48%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.52) 0%, transparent 100%);
-  border-radius: 32px 32px 0 0;
+  position: absolute; top: 0; left: 0; right: 0; height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, transparent 100%);
+  border-radius: 36px 36px 0 0;
   pointer-events: none;
 }
 
-.char-card:hover {
-  transform: translateY(-7px);
-  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.95);
-}
-
-.char-card.selected {
-  border-color: rgba(91,141,238,0.55);
-  box-shadow: 0 0 0 3.5px rgba(91,141,238,0.18), var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.95);
-}
-
-/* character image inside card */
-.char-img {
-  width: 148px; height: 188px;
+.car-img {
+  width: 100%; height: 100%;
   display: flex; align-items: flex-end; justify-content: center;
-  position: relative; overflow: visible;
+  position: relative;
+  z-index: 1;
 }
-
-.char-img img {
+.car-img img {
   max-width: 100%; max-height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 8px 22px rgba(80,90,130,0.16));
-  transition: filter 0.28s;
+  filter: drop-shadow(0 10px 26px rgba(80,95,135,0.18));
+  pointer-events: none;
 }
 
-.char-card.selected .char-img img {
-  filter: drop-shadow(0 10px 30px rgba(91,141,238,0.28));
+.car-label {
+  margin-top: 14px;
+  text-align: center;
 }
-
-/* fallback placeholder */
-.char-ph {
-  width: 108px; height: 148px;
-  border-radius: 18px;
-  background: linear-gradient(145deg, rgba(160,185,240,0.28), rgba(185,160,240,0.22));
-  border: 1px solid rgba(255,255,255,0.5);
-  display: flex; align-items: center; justify-content: center;
-}
-.char-ph span {
-  font-size: 0.72rem; font-weight: 500;
-  color: var(--text-3); letter-spacing: -0.01em;
-}
-
 .char-badge {
-  font-size: 0.65rem; font-weight: 600;
-  letter-spacing: 0.09em; text-transform: uppercase;
-  color: var(--text-3); margin-top: 13px;
+  font-size: 0.66rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-3);
+  display: block;
 }
 .char-name {
-  font-size: 0.9rem; font-weight: 500;
-  color: var(--text); margin-top: 3px; letter-spacing: -0.02em;
+  font-size: 0.95rem; font-weight: 500;
+  color: var(--text); letter-spacing: -0.02em;
+  margin-top: 3px;
+  display: block;
 }
 
-/* selected check */
-.char-check {
-  position: absolute; top: 11px; right: 11px;
-  width: 21px; height: 21px; border-radius: 50%;
-  background: var(--accent);
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; transition: opacity 0.2s;
-  box-shadow: 0 2px 8px rgba(91,141,238,0.45);
+/* Carousel positions */
+.car-item.center {
+  transform: scale(1);
+  opacity: 1; filter: none;
+  z-index: 3;
 }
-.char-card.selected .char-check { opacity: 1; }
+.car-item.center:hover .car-card {
+  box-shadow: 0 0 0 3px rgba(91,141,238,0.22),
+              var(--shadow-lg),
+              inset 0 1px 0 rgba(255,255,255,0.95);
+}
+.car-item.next {
+  transform: translateX(220px) scale(0.7);
+  opacity: 0.45;
+  filter: blur(1px);
+  z-index: 2;
+}
+.car-item.prev {
+  transform: translateX(-220px) scale(0.7);
+  opacity: 0.45;
+  filter: blur(1px);
+  z-index: 2;
+}
 
-/* start button */
-.btn-start {
-  padding: 14px 54px;
-  border-radius: var(--r-btn);
-  border: none;
-  background: linear-gradient(135deg, #5b8dee 0%, #7c4dff 100%);
-  color: #fff;
-  font-family: var(--font-ui);
-  font-size: 0.95rem; font-weight: 600;
-  letter-spacing: -0.01em;
+.car-item.next:hover, .car-item.prev:hover {
+  opacity: 0.7;
+}
+
+/* Carousel nav arrows */
+.car-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--text-2);
   cursor: pointer;
-  box-shadow: 0 8px 28px rgba(91,141,238,0.38);
-  transition: transform 0.18s, box-shadow 0.18s, opacity 0.18s;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+  box-shadow: var(--shadow);
 }
-.btn-start:hover { transform: translateY(-2px); box-shadow: 0 14px 38px rgba(91,141,238,0.46); }
-.btn-start:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+.car-nav:hover { background: rgba(255,255,255,0.95); color: var(--text); transform: translateY(-50%) scale(1.06); }
+.car-prev { left: 10px; }
+.car-next { right: 10px; }
+
+.select-hint {
+  margin-top: 26px;
+  font-size: 0.82rem;
+  color: var(--text-3);
+  letter-spacing: -0.01em;
+}
 
 /* ═══════════════════════════════════════════
    SCREEN 2 — MAIN
 ═══════════════════════════════════════════ */
 #screen-main { position: relative; }
 
-/* ── Character layers ── */
+/* Character layers */
 .character-bg,
 .character-cutout {
   position: absolute;
@@ -274,26 +287,21 @@ html, body {
   height: auto;
   display: none;
 }
-
 .character-bg {
   z-index: 5;
   opacity: 0.26;
   filter: blur(2.5px) brightness(1.08) saturate(108%);
   pointer-events: none;
 }
-
 .character-cutout {
   z-index: 20;
   filter: drop-shadow(0 28px 70px rgba(70,90,130,0.19));
   pointer-events: none;
 }
 
-/* ── Canvas (z:10) ── */
-#canvas {
-  position: absolute; inset: 0; z-index: 10;
-}
+/* Canvas (z:10) */
+#canvas { position: absolute; inset: 0; z-index: 10; }
 
-/* Playlist info overlay */
 #pl-overlay {
   position: absolute; top: 66px; left: 22px; z-index: 11;
   pointer-events: none; max-width: 230px;
@@ -311,7 +319,7 @@ html, body {
   line-height: 1.25; letter-spacing: -0.01em;
 }
 
-/* ── Topbar (z:30) ── */
+/* Topbar */
 #topbar {
   position: absolute; top: 0; left: 0; right: 0; z-index: 30;
   height: 54px;
@@ -323,17 +331,14 @@ html, body {
   border-bottom: 1px solid rgba(255,255,255,0.72);
   box-shadow: 0 1px 0 rgba(0,0,0,0.055);
 }
-
 .tb-logo {
   font-family: var(--font-logo);
   font-style: italic; font-weight: 500;
   font-size: 1.28rem; letter-spacing: -0.03em;
   color: rgba(36,40,58,0.72);
 }
-
 .tb-right { display: flex; gap: 7px; align-items: center; }
 
-/* Glass pill button */
 .gpill {
   display: flex; align-items: center; gap: 5px;
   padding: 0 14px; height: 33px;
@@ -353,7 +358,7 @@ html, body {
 .gpill.active { background: rgba(91,141,238,0.1); border-color: rgba(91,141,238,0.28); color: var(--accent); }
 .gpill svg { flex-shrink: 0; }
 
-/* ── Edit panel (z:30) — floating glass sheet ── */
+/* Edit panel */
 #edit-panel {
   position: absolute;
   top: 64px; right: 10px; bottom: 10px; z-index: 30;
@@ -371,53 +376,41 @@ html, body {
 }
 #edit-panel.open { transform: translateX(0); }
 
-/* Panel header */
 .panel-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 18px 14px;
   border-bottom: 1px solid rgba(0,0,0,0.06);
   flex-shrink: 0;
 }
-.panel-head-title {
-  font-size: 0.88rem; font-weight: 600;
-  color: var(--text); letter-spacing: -0.02em;
-}
+.panel-head-title { font-size: 0.88rem; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
 .btn-panel-close {
   width: 24px; height: 24px; border-radius: 50%;
   border: none; background: rgba(0,0,0,0.07);
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--text-2); font-size: 0.9rem;
+  cursor: pointer; color: var(--text-2);
   transition: background 0.18s;
 }
 .btn-panel-close:hover { background: rgba(0,0,0,0.13); }
 
-/* Panel scroll body */
-.panel-body {
-  flex: 1; overflow-y: auto;
-  padding: 16px 16px 18px;
-}
+.panel-body { flex: 1; overflow-y: auto; padding: 16px 16px 18px; }
 .panel-body::-webkit-scrollbar { width: 4px; }
 .panel-body::-webkit-scrollbar-track { background: transparent; }
 .panel-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 2px; }
 
 .ps { margin-bottom: 16px; }
-
 .plabel {
   font-size: 0.67rem; font-weight: 600;
   letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--text-3); margin-bottom: 6px;
 }
-
 .pinput {
-  width: 100%;
-  padding: 10px 13px;
+  width: 100%; padding: 10px 13px;
   border-radius: 13px;
   border: 1px solid rgba(0,0,0,0.09);
   background: rgba(255,255,255,0.72);
   color: var(--text);
   font-family: var(--font-ui);
-  font-size: 0.875rem; font-weight: 400;
-  letter-spacing: -0.01em;
+  font-size: 0.875rem; letter-spacing: -0.01em;
   outline: none;
   transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
 }
@@ -427,25 +420,18 @@ html, body {
   background: rgba(255,255,255,0.92);
 }
 .pinput::placeholder { color: rgba(0,0,0,0.24); }
+.pdiv { height: 1px; background: rgba(0,0,0,0.065); margin: 4px 0 16px; }
 
-.pdiv {
-  height: 1px; background: rgba(0,0,0,0.065);
-  margin: 4px 0 16px;
-}
-
-/* Orbit toggle row */
 .orbit-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 13px; border-radius: 13px;
   background: rgba(255,255,255,0.5);
   border: 1px solid rgba(0,0,0,0.07);
   cursor: pointer; transition: background 0.18s;
-  margin-bottom: 16px;
-  user-select: none;
+  margin-bottom: 16px; user-select: none;
 }
 .orbit-row:hover { background: rgba(255,255,255,0.82); }
 .orbit-lbl { font-size: 0.84rem; font-weight: 500; color: var(--text); letter-spacing: -0.01em; }
-
 .sw {
   width: 38px; height: 22px; border-radius: 11px;
   background: rgba(0,0,0,0.14); position: relative;
@@ -462,7 +448,6 @@ html, body {
 .orbit-row.active .sw { background: var(--accent); }
 .orbit-row.active .sw::after { transform: translateX(16px); }
 
-/* song count badge */
 .song-count-row {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 8px;
@@ -474,9 +459,7 @@ html, body {
 }
 .scount-val { color: var(--text-2); }
 
-/* Song list in panel */
 .song-list-p { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
-
 .song-row-p {
   display: flex; align-items: center; gap: 9px;
   padding: 8px 10px; border-radius: 12px;
@@ -502,8 +485,8 @@ html, body {
   background: none; border: none;
   color: rgba(0,0,0,0.18); cursor: pointer;
   padding: 2px 5px; border-radius: 6px;
-  font-size: 0.8rem; line-height: 1;
   transition: color 0.18s, background 0.18s; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
 }
 .btn-sdel:hover { color: #d93636; background: rgba(217,54,54,0.09); }
 
@@ -513,7 +496,6 @@ html, body {
   letter-spacing: -0.01em;
 }
 
-/* Add song button */
 .btn-add-song {
   width: 100%; padding: 10px;
   border-radius: 13px;
@@ -522,14 +504,12 @@ html, body {
   color: var(--accent);
   font-family: var(--font-ui);
   font-size: 0.85rem; font-weight: 500;
-  letter-spacing: -0.01em;
-  cursor: pointer;
+  letter-spacing: -0.01em; cursor: pointer;
   transition: background 0.18s, border-color 0.18s;
   display: flex; align-items: center; justify-content: center; gap: 5px;
 }
 .btn-add-song:hover { background: rgba(91,141,238,0.1); border-color: rgba(91,141,238,0.48); }
 
-/* Share */
 .btn-share {
   width: 100%; padding: 12px;
   border-radius: 15px; border: none;
@@ -556,7 +536,6 @@ html, body {
 .share-url-box:hover { background: rgba(255,255,255,0.9); }
 .share-url-box.visible { display: block; }
 
-/* Char switch */
 .btn-char-switch {
   width: 100%; padding: 10px; border-radius: 13px;
   border: 1px solid rgba(0,0,0,0.09);
@@ -569,7 +548,6 @@ html, body {
 }
 .btn-char-switch:hover { background: rgba(255,255,255,0.88); color: var(--text); }
 
-/* ── View banner (z:30) ── */
 #view-banner {
   position: absolute; bottom: 0; left: 0; right: 0; z-index: 30;
   padding: 13px 20px;
@@ -592,9 +570,7 @@ html, body {
 }
 .btn-own:hover { background: rgba(91,141,238,0.18); }
 
-/* ═══════════════════════════════════════════
-   MUSIC CARDS  (z: inside canvas = 10 overall)
-═══════════════════════════════════════════ */
+/* Music cards */
 .music-card {
   position: absolute;
   width: 194px;
@@ -611,8 +587,6 @@ html, body {
   overflow: hidden;
 }
 .music-card:active { cursor: grabbing; }
-
-/* glass top gloss */
 .music-card::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 44%;
@@ -620,7 +594,6 @@ html, body {
   border-radius: 28px 28px 0 0;
   pointer-events: none;
 }
-
 .music-card:hover {
   transform: scale(1.04) translateY(-3px);
   box-shadow: 0 30px 96px rgba(100,120,175,0.2), inset 0 1px 0 rgba(255,255,255,0.92);
@@ -632,16 +605,7 @@ html, body {
   background: rgba(0,0,0,0.04);
   position: relative;
 }
-.c-thumb img {
-  width: 100%; height: 100%; object-fit: cover; display: block;
-}
-.c-thumb-ph {
-  position: absolute; inset: 0;
-  display: none; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, rgba(140,165,230,0.18), rgba(175,150,245,0.18));
-}
-.c-thumb-ph span { font-size: 0.68rem; color: var(--text-3); font-weight: 500; }
-
+.c-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .c-body { margin-top: 9px; }
 .c-title {
   font-size: 0.81rem; font-weight: 600;
@@ -653,7 +617,6 @@ html, body {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   font-style: italic; letter-spacing: -0.01em;
 }
-
 .c-foot {
   display: flex; align-items: center; justify-content: space-between;
   margin-top: 8px;
@@ -669,20 +632,17 @@ html, body {
 }
 .c-play:hover { transform: scale(1.13); box-shadow: 0 6px 20px rgba(91,141,238,0.5); }
 .c-play svg { color: white; }
-
 .c-del {
   background: none; border: none;
   color: rgba(0,0,0,0.16); cursor: pointer;
   padding: 2px 5px; border-radius: 6px;
-  font-size: 0.8rem; line-height: 1;
   transition: color 0.18s, background 0.18s;
   pointer-events: all;
+  display: flex; align-items: center; justify-content: center;
 }
 .c-del:hover { color: #d93636; background: rgba(217,54,54,0.09); }
 
-/* ═══════════════════════════════════════════
-   ADD SONG MODAL
-═══════════════════════════════════════════ */
+/* Modal */
 #modal-add {
   position: fixed; inset: 0; z-index: 200;
   display: flex; align-items: center; justify-content: center;
@@ -705,12 +665,7 @@ html, body {
   padding: 26px 22px 20px;
   display: flex; flex-direction: column; gap: 13px;
 }
-
-.mbox-title {
-  font-size: 1.12rem; font-weight: 600;
-  color: var(--text); letter-spacing: -0.02em;
-}
-
+.mbox-title { font-size: 1.12rem; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
 .thumb-prev {
   width: 100%; height: 108px; border-radius: 17px;
   overflow: hidden;
@@ -720,7 +675,6 @@ html, body {
 }
 .thumb-prev img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .thumb-ph { font-size: 0.75rem; color: var(--text-3); font-weight: 500; }
-
 .m-acts { display: flex; gap: 9px; margin-top: 2px; }
 .btn-mcancel {
   flex: 1; padding: 12px; border-radius: 13px;
@@ -732,7 +686,6 @@ html, body {
   transition: background 0.18s;
 }
 .btn-mcancel:hover { background: rgba(255,255,255,0.9); }
-
 .btn-madd {
   flex: 2; padding: 12px; border-radius: 13px;
   border: none;
@@ -745,9 +698,7 @@ html, body {
 }
 .btn-madd:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(91,141,238,0.42); }
 
-/* ═══════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════ */
+/* Toast */
 #toast {
   position: fixed; bottom: 28px; left: 50%;
   transform: translateX(-50%) translateY(14px);
@@ -765,13 +716,15 @@ html, body {
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* ═══════════════════════════════════════════
-   MOBILE
-═══════════════════════════════════════════ */
+/* Mobile */
 @media (max-width: 640px) {
-  .char-grid { gap: 11px; }
-  .char-card { width: 158px; padding: 20px 12px 15px; }
-  .char-img { width: 120px; height: 156px; }
+  .carousel { height: 420px; }
+  .car-item { width: 230px; height: 340px; margin-left: -115px; margin-top: -170px; }
+  .car-item.next { transform: translateX(180px) scale(0.65); }
+  .car-item.prev { transform: translateX(-180px) scale(0.65); }
+  .car-nav { width: 40px; height: 40px; }
+  .car-prev { left: 4px; }
+  .car-next { right: 4px; }
   .character-bg, .character-cutout { width: clamp(220px, 72vw, 360px); }
   .music-card { width: 166px; }
   #edit-panel { width: calc(100vw - 16px); right: 8px; top: 58px; bottom: 8px; }
@@ -781,7 +734,7 @@ html, body {
 </head>
 <body>
 
-<!-- ── BACKGROUND ── -->
+<!-- BACKGROUND -->
 <div id="bg">
   <div id="bg-grid"></div>
   <div class="blob blob-1"></div>
@@ -791,65 +744,65 @@ html, body {
 <div id="grain"></div>
 
 <!-- ══════════════════════════════════════════
-     SCREEN 1 — CHARACTER SELECT
+     SCREEN 1 — CAROUSEL CHARACTER SELECT
 ═══════════════════════════════════════════ -->
 <div class="screen" id="screen-select">
   <p class="s-logo">moodlist</p>
   <p class="s-sub">당신의 감성을 대변할 캐릭터를 선택하세요</p>
 
-  <div class="char-grid">
+  <div class="carousel">
+    <button class="car-nav car-prev" onclick="carouselPrev()" aria-label="이전">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </button>
 
-    <!-- Character 01 -->
-    <div class="char-card" data-char="1" onclick="selectChar(1)">
-      <div class="char-check">
-        <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-          <polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+    <div class="car-stage" id="car-stage">
+      <div class="car-item" data-idx="0" onclick="carouselTap(0)">
+        <div class="car-card">
+          <div class="car-img">
+            <img alt="Character 01" data-char="1">
+          </div>
+        </div>
+        <div class="car-label">
+          <span class="char-badge">Character 01</span>
+          <span class="char-name">The Reader</span>
+        </div>
       </div>
-      <div class="char-img">
-        <img src="character_01_cutout.png" alt="Character 01"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-        <div class="char-ph" style="display:none"><span>No image</span></div>
+
+      <div class="car-item" data-idx="1" onclick="carouselTap(1)">
+        <div class="car-card">
+          <div class="car-img">
+            <img alt="Character 02" data-char="2">
+          </div>
+        </div>
+        <div class="car-label">
+          <span class="char-badge">Character 02</span>
+          <span class="char-name">The Listener</span>
+        </div>
       </div>
-      <span class="char-badge">Character 01</span>
-      <span class="char-name">The Reader</span>
+
+      <div class="car-item" data-idx="2" onclick="carouselTap(2)">
+        <div class="car-card">
+          <div class="car-img">
+            <img alt="Character 03" data-char="3">
+          </div>
+        </div>
+        <div class="car-label">
+          <span class="char-badge">Character 03</span>
+          <span class="char-name">The Dreamer</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Character 02 -->
-    <div class="char-card" data-char="2" onclick="selectChar(2)">
-      <div class="char-check">
-        <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-          <polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <div class="char-img">
-        <img src="character_02_cutout.png" alt="Character 02"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-        <div class="char-ph" style="display:none"><span>No image</span></div>
-      </div>
-      <span class="char-badge">Character 02</span>
-      <span class="char-name">The Listener</span>
-    </div>
-
-    <!-- Character 03 -->
-    <div class="char-card" data-char="3" onclick="selectChar(3)">
-      <div class="char-check">
-        <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-          <polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <div class="char-img">
-        <img src="character_03_cutout.png" alt="Character 03"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-        <div class="char-ph" style="display:none"><span>No image</span></div>
-      </div>
-      <span class="char-badge">Character 03</span>
-      <span class="char-name">The Dreamer</span>
-    </div>
-
+    <button class="car-nav car-next" onclick="carouselNext()" aria-label="다음">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </button>
   </div>
 
-  <button class="btn-start" id="btn-start" disabled onclick="startMain()">시작하기</button>
+  <p class="select-hint">캐릭터를 눌러 시작하세요</p>
 </div>
 
 <!-- ══════════════════════════════════════════
@@ -857,22 +810,21 @@ html, body {
 ═══════════════════════════════════════════ -->
 <div class="screen hidden" id="screen-main">
 
-  <!-- z:5 — Character background layer -->
-  <img class="character-bg" id="char-bg" src="" alt="">
+  <!-- z:5 — character background -->
+  <img class="character-bg" id="char-bg" alt="">
 
-  <!-- z:10 — Canvas (orbit cards live here) -->
+  <!-- z:10 — cards canvas -->
   <div id="canvas">
     <div id="pl-overlay">
       <div class="pl-nick" id="pl-nick"></div>
       <div class="pl-title" id="pl-title">나의 플레이리스트</div>
     </div>
-    <!-- .music-card elements injected by JS -->
   </div>
 
-  <!-- z:20 — Character cutout layer (in FRONT of cards) -->
-  <img class="character-cutout" id="char-cutout" src="" alt="">
+  <!-- z:20 — character cutout (in front of cards) -->
+  <img class="character-cutout" id="char-cutout" alt="">
 
-  <!-- z:30 — Topbar -->
+  <!-- z:30 — topbar -->
   <div id="topbar">
     <span class="tb-logo">moodlist</span>
     <div class="tb-right">
@@ -892,7 +844,7 @@ html, body {
     </div>
   </div>
 
-  <!-- z:30 — Edit panel (floating glass sheet) -->
+  <!-- z:30 — edit panel -->
   <div id="edit-panel">
     <div class="panel-head">
       <span class="panel-head-title">편집</span>
@@ -904,13 +856,11 @@ html, body {
     </div>
 
     <div class="panel-body">
-      <!-- Nickname -->
       <div class="ps">
         <div class="plabel">닉네임</div>
         <input class="pinput" id="inp-nick" type="text" maxlength="20"
                placeholder="ex) yuna" oninput="updateOverlay()">
       </div>
-      <!-- Playlist title -->
       <div class="ps">
         <div class="plabel">플레이리스트 제목</div>
         <input class="pinput" id="inp-title" type="text" maxlength="40"
@@ -919,13 +869,11 @@ html, body {
 
       <div class="pdiv"></div>
 
-      <!-- Orbit toggle -->
       <div class="orbit-row" id="orbit-row" onclick="toggleOrbit()">
         <span class="orbit-lbl">카드 Orbit 회전</span>
         <div class="sw"></div>
       </div>
 
-      <!-- Song list -->
       <div class="song-count-row">
         <span class="scount">플레이리스트 <span class="scount-val" id="s-count">0</span> / 8</span>
       </div>
@@ -942,7 +890,6 @@ html, body {
 
       <div class="pdiv"></div>
 
-      <!-- Character switch -->
       <div class="ps">
         <div class="plabel">캐릭터 변경</div>
         <button class="btn-char-switch" onclick="goSelect()">
@@ -955,7 +902,6 @@ html, body {
 
       <div class="pdiv"></div>
 
-      <!-- Share -->
       <div class="ps">
         <button class="btn-share" onclick="generateShare()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
@@ -970,43 +916,33 @@ html, body {
     </div>
   </div>
 
-  <!-- z:30 — View-only banner -->
+  <!-- view-only banner -->
   <div id="view-banner">
     <span class="vb-text">공유된 플레이리스트입니다</span>
     <button class="btn-own" onclick="makeOwn()">나도 만들기</button>
   </div>
-
 </div>
 
-<!-- ══════════════════════════════════════════
-     ADD SONG MODAL
-═══════════════════════════════════════════ -->
+<!-- MODAL -->
 <div id="modal-add">
   <div class="mbox">
     <div class="mbox-title">노래 추가</div>
-
     <div>
       <div class="plabel">YouTube URL</div>
       <input class="pinput" id="m-url" type="url"
              placeholder="https://www.youtube.com/watch?v=..." oninput="previewThumb()">
     </div>
-
     <div class="thumb-prev" id="m-thumb">
       <span class="thumb-ph">YouTube URL을 입력하면 썸네일이 표시됩니다</span>
     </div>
-
     <div>
       <div class="plabel">노래 제목</div>
-      <input class="pinput" id="m-stitle" type="text" maxlength="50"
-             placeholder="ex) 봄날">
+      <input class="pinput" id="m-stitle" type="text" maxlength="50" placeholder="ex) 봄날">
     </div>
-
     <div>
       <div class="plabel">감성 메모</div>
-      <input class="pinput" id="m-memo" type="text" maxlength="60"
-             placeholder="ex) 창문 열고 들으면 딱인 노래">
+      <input class="pinput" id="m-memo" type="text" maxlength="60" placeholder="ex) 창문 열고 들으면 딱인 노래">
     </div>
-
     <div class="m-acts">
       <button class="btn-mcancel" onclick="closeAddModal()">취소</button>
       <button class="btn-madd" onclick="addSong()">추가</button>
@@ -1014,36 +950,63 @@ html, body {
   </div>
 </div>
 
-<!-- Toast -->
 <div id="toast"></div>
 
-<!-- ══════════════════════════════════════════
-     JAVASCRIPT
-═══════════════════════════════════════════ -->
 <script>
 /* ═══════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════ */
 let state = {
-  selectedCharacter: null,   // 1 | 2 | 3
+  selectedCharacter: null,
   nickname: '',
   playlistTitle: '',
-  songs: [],   // [{id, videoId, title, memo, x, y}]
+  songs: [],
   isViewOnly: false,
 };
 
+let carouselIdx = 0;
 let orbitActive = false;
 let orbitAngle  = 0;
 let orbitRAF    = null;
 
 /* ═══════════════════════════════════════════
+   IMAGE LOADER WITH FALLBACK
+   - paths 배열을 순서대로 시도, 첫 성공한 이미지를 표시
+   - 모두 실패하면 hide
+═══════════════════════════════════════════ */
+function loadImageWithFallback(imgEl, paths) {
+  let i = 0;
+  imgEl.style.display = '';
+  function next() {
+    if (i >= paths.length) {
+      imgEl.style.display = 'none';
+      return;
+    }
+    imgEl.src = paths[i++];
+  }
+  imgEl.onload  = function() {
+    imgEl.style.removeProperty('display');
+  };
+  imgEl.onerror = next;
+  next();
+}
+
+/* ═══════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', () => {
-  // Check for shared URL data
+  // 1) Carousel character images — fallback chain
+  document.querySelectorAll('.car-item img[data-char]').forEach(img => {
+    const n = img.dataset.char;
+    loadImageWithFallback(img, [
+      `character_0${n}_cutout.png`,
+      `character_0${n}.png`
+    ]);
+  });
+
+  // 2) Check shared URL data
   const params = new URLSearchParams(location.search);
   const raw = params.get('data');
-
   if (raw) {
     try {
       const decoded = JSON.parse(decodeURIComponent(atob(raw)));
@@ -1055,48 +1018,77 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Restore draft from localStorage
+  // 3) Restore localStorage draft
   try {
     const draft = JSON.parse(localStorage.getItem('moodlist_draft') || 'null');
     if (draft && draft.selectedCharacter) {
       state = { ...draft, isViewOnly: false };
-      selectChar(state.selectedCharacter, false);
+      carouselIdx = state.selectedCharacter - 1;
     }
   } catch(e) {}
+
+  carouselRender();
 });
 
 /* ═══════════════════════════════════════════
-   CHARACTER SELECT
+   CAROUSEL
 ═══════════════════════════════════════════ */
-function selectChar(n, updateUI = true) {
-  state.selectedCharacter = n;
-  if (updateUI) {
-    document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
-    document.querySelector(`.char-card[data-char="${n}"]`).classList.add('selected');
-  }
-  document.getElementById('btn-start').disabled = false;
+function carouselRender() {
+  const items = document.querySelectorAll('.car-item');
+  const total = items.length;
+  items.forEach((item, i) => {
+    item.classList.remove('center', 'prev', 'next');
+    const off = ((i - carouselIdx) % total + total) % total;
+    if (off === 0)      item.classList.add('center');
+    else if (off === 1) item.classList.add('next');
+    else                item.classList.add('prev');
+  });
 }
 
-function startMain() {
-  saveDraft();
-  showMain();
+function carouselPrev() {
+  const total = document.querySelectorAll('.car-item').length;
+  carouselIdx = (carouselIdx - 1 + total) % total;
+  carouselRender();
 }
 
-function goSelect() {
-  // Return to character select from main
-  stopOrbit();
-  document.getElementById('screen-main').classList.add('hidden');
-  document.getElementById('screen-select').classList.remove('hidden');
-  closePanel();
-  if (state.selectedCharacter) {
-    document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
-    document.querySelector(`.char-card[data-char="${state.selectedCharacter}"]`).classList.add('selected');
-    document.getElementById('btn-start').disabled = false;
+function carouselNext() {
+  const total = document.querySelectorAll('.car-item').length;
+  carouselIdx = (carouselIdx + 1) % total;
+  carouselRender();
+}
+
+function carouselTap(idx) {
+  if (idx === carouselIdx) {
+    // 중앙 캐릭터 탭 → 바로 메인 진입
+    state.selectedCharacter = idx + 1;
+    saveDraft();
+    showMain();
+  } else {
+    // 옆 캐릭터 탭 → 회전
+    carouselIdx = idx;
+    carouselRender();
   }
 }
+
+// Keyboard nav for carousel
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('screen-select').classList.contains('hidden')) {
+    if (e.key === 'ArrowLeft')  carouselPrev();
+    if (e.key === 'ArrowRight') carouselNext();
+    if (e.key === 'Enter') {
+      state.selectedCharacter = carouselIdx + 1;
+      saveDraft();
+      showMain();
+    }
+  }
+  if (e.key === 'Escape') {
+    closeAddModal();
+    closePanel();
+  }
+});
 
 /* ═══════════════════════════════════════════
-   SHOW MAIN
+   MAIN SCREEN
 ═══════════════════════════════════════════ */
 function showMain() {
   document.getElementById('screen-select').classList.add('hidden');
@@ -1111,35 +1103,44 @@ function showMain() {
     document.getElementById('view-banner').classList.add('show');
     document.getElementById('btn-edit').style.display = 'none';
     document.getElementById('btn-orbit').style.display = 'none';
-    // Auto-start orbit in view mode
     orbitActive = false;
     toggleOrbit();
   }
 }
 
-/* ═══════════════════════════════════════════
-   APPLY CHARACTER LAYERS
-═══════════════════════════════════════════ */
-function applyCharacter() {
-  const n   = state.selectedCharacter || 1;
-  const bgEl  = document.getElementById('char-bg');
-  const ctEl  = document.getElementById('char-cutout');
-
-  bgEl.src = `character_0${n}_bg.png`;
-  ctEl.src = `character_0${n}_cutout.png`;
-
-  bgEl.style.display = 'block';
-  ctEl.style.display = 'block';
-
-  bgEl.onerror  = () => { bgEl.style.display = 'none'; };
-  ctEl.onerror  = () => { ctEl.style.display = 'none'; };
+function goSelect() {
+  stopOrbit();
+  closePanel();
+  document.getElementById('screen-main').classList.add('hidden');
+  document.getElementById('screen-select').classList.remove('hidden');
+  if (state.selectedCharacter) {
+    carouselIdx = state.selectedCharacter - 1;
+    carouselRender();
+  }
 }
 
 /* ═══════════════════════════════════════════
-   OVERLAY & PANEL INPUTS
+   APPLY CHARACTER LAYERS
+   - cutout: ideal _cutout.png → fallback to character_0X.png
+   - bg    : ideal _bg.png     → fallback to character_0X.png
+═══════════════════════════════════════════ */
+function applyCharacter() {
+  const n = state.selectedCharacter || 1;
+  loadImageWithFallback(
+    document.getElementById('char-cutout'),
+    [`character_0${n}_cutout.png`, `character_0${n}.png`]
+  );
+  loadImageWithFallback(
+    document.getElementById('char-bg'),
+    [`character_0${n}_bg.png`, `character_0${n}.png`]
+  );
+}
+
+/* ═══════════════════════════════════════════
+   OVERLAY
 ═══════════════════════════════════════════ */
 function updateOverlay() {
-  state.nickname     = document.getElementById('inp-nick').value.trim();
+  state.nickname      = document.getElementById('inp-nick').value.trim();
   state.playlistTitle = document.getElementById('inp-title').value.trim();
   document.getElementById('pl-nick').textContent  = state.nickname  || '';
   document.getElementById('pl-title').textContent = state.playlistTitle || '나의 플레이리스트';
@@ -1154,12 +1155,8 @@ function updatePanelInputs() {
 /* ═══════════════════════════════════════════
    PANEL
 ═══════════════════════════════════════════ */
-function togglePanel() {
-  document.getElementById('edit-panel').classList.toggle('open');
-}
-function closePanel() {
-  document.getElementById('edit-panel').classList.remove('open');
-}
+function togglePanel() { document.getElementById('edit-panel').classList.toggle('open'); }
+function closePanel()  { document.getElementById('edit-panel').classList.remove('open'); }
 
 /* ═══════════════════════════════════════════
    YOUTUBE UTILS
@@ -1184,9 +1181,9 @@ function thumbUrl(videoId) {
 ═══════════════════════════════════════════ */
 function openAddModal() {
   if (state.songs.length >= 8) { showToast('최대 8곡까지 추가할 수 있어요'); return; }
-  document.getElementById('m-url').value     = '';
-  document.getElementById('m-stitle').value  = '';
-  document.getElementById('m-memo').value    = '';
+  document.getElementById('m-url').value    = '';
+  document.getElementById('m-stitle').value = '';
+  document.getElementById('m-memo').value   = '';
   resetThumb();
   document.getElementById('modal-add').classList.add('open');
   setTimeout(() => document.getElementById('m-url').focus(), 100);
@@ -1198,9 +1195,9 @@ function closeAddModal() {
 
 function previewThumb() {
   const vid = extractVideoId(document.getElementById('m-url').value.trim());
-  const box  = document.getElementById('m-thumb');
+  const box = document.getElementById('m-thumb');
   if (vid) {
-    box.innerHTML = `<img src="${thumbUrl(vid)}" alt="thumbnail"
+    box.innerHTML = `<img src="${thumbUrl(vid)}" alt="thumb"
       onerror="this.parentElement.innerHTML='<span class=thumb-ph>썸네일을 불러올 수 없어요</span>'">`;
   } else {
     resetThumb();
@@ -1208,35 +1205,32 @@ function previewThumb() {
 }
 
 function resetThumb() {
-  document.getElementById('m-thumb').innerHTML = '<span class="thumb-ph">YouTube URL을 입력하면 썸네일이 표시됩니다</span>';
+  document.getElementById('m-thumb').innerHTML =
+    '<span class="thumb-ph">YouTube URL을 입력하면 썸네일이 표시됩니다</span>';
 }
 
-/* ═══════════════════════════════════════════
-   ADD SONG
-═══════════════════════════════════════════ */
 function addSong() {
-  const url    = document.getElementById('m-url').value.trim();
-  const title  = document.getElementById('m-stitle').value.trim();
-  const memo   = document.getElementById('m-memo').value.trim();
+  const url     = document.getElementById('m-url').value.trim();
+  const title   = document.getElementById('m-stitle').value.trim();
+  const memo    = document.getElementById('m-memo').value.trim();
   const videoId = extractVideoId(url);
 
   if (!url)     { showToast('YouTube URL을 입력해주세요'); return; }
   if (!videoId) { showToast('유효한 YouTube 링크가 아닙니다'); return; }
   if (!title)   { showToast('노래 제목을 입력해주세요'); return; }
 
-  // Scatter position — avoid the centre-bottom where character stands
   const canvas = document.getElementById('canvas');
   const cw = canvas.offsetWidth, ch = canvas.offsetHeight;
 
   const zones = [
-    { x: cw * 0.04, y: ch * 0.10 },   // top-left
-    { x: cw * 0.62, y: ch * 0.08 },   // top-right
-    { x: cw * 0.04, y: ch * 0.48 },   // mid-left
-    { x: cw * 0.62, y: ch * 0.46 },   // mid-right
-    { x: cw * 0.30, y: ch * 0.05 },   // top-centre
-    { x: cw * 0.04, y: ch * 0.78 },   // bottom-left
-    { x: cw * 0.62, y: ch * 0.76 },   // bottom-right
-    { x: cw * 0.30, y: ch * 0.72 },   // bottom-centre
+    { x: cw * 0.04, y: ch * 0.10 },
+    { x: cw * 0.62, y: ch * 0.08 },
+    { x: cw * 0.04, y: ch * 0.48 },
+    { x: cw * 0.62, y: ch * 0.46 },
+    { x: cw * 0.30, y: ch * 0.05 },
+    { x: cw * 0.04, y: ch * 0.78 },
+    { x: cw * 0.62, y: ch * 0.76 },
+    { x: cw * 0.30, y: ch * 0.72 },
   ];
 
   const idx = state.songs.length % zones.length;
@@ -1258,9 +1252,6 @@ function addSong() {
   showToast(`"${title}" 추가됐어요`);
 }
 
-/* ═══════════════════════════════════════════
-   DELETE SONG
-═══════════════════════════════════════════ */
 function deleteSong(id) {
   state.songs = state.songs.filter(s => s.id !== id);
   renderCards();
@@ -1273,7 +1264,6 @@ function deleteSong(id) {
 ═══════════════════════════════════════════ */
 function renderCards() {
   document.querySelectorAll('.music-card').forEach(c => c.remove());
-
   state.songs.forEach(song => {
     const card = buildCard(song);
     document.getElementById('canvas').appendChild(card);
@@ -1281,7 +1271,6 @@ function renderCards() {
     card.style.top  = song.y + 'px';
     if (!state.isViewOnly) makeDraggable(card, song);
   });
-
   renderSongPanel();
 }
 
@@ -1289,12 +1278,10 @@ function buildCard(song) {
   const card = document.createElement('div');
   card.className = 'music-card';
   card.dataset.id = song.id;
-
   card.innerHTML = `
     <div class="c-thumb">
       <img src="${thumbUrl(song.videoId)}" alt="${esc(song.title)}"
-           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <div class="c-thumb-ph"><span>No thumbnail</span></div>
+           onerror="this.style.opacity='0'">
     </div>
     <div class="c-body">
       <div class="c-title">${esc(song.title)}</div>
@@ -1307,25 +1294,21 @@ function buildCard(song) {
           <polygon points="3,1.5 10.5,6 3,10.5" fill="white"/>
         </svg>
       </a>
-      ${!state.isViewOnly
-        ? `<button class="c-del" onclick="deleteSong('${song.id}')" title="삭제">
-             <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-               <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
-             </svg>
-           </button>`
-        : ''}
+      ${!state.isViewOnly ? `
+        <button class="c-del" onclick="deleteSong('${song.id}')" title="삭제">
+          <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
+          </svg>
+        </button>` : ''}
     </div>
   `;
   return card;
 }
 
-/* ═══════════════════════════════════════════
-   PANEL SONG LIST
-═══════════════════════════════════════════ */
 function renderSongPanel() {
-  const list = document.getElementById('song-list-p');
+  const list   = document.getElementById('song-list-p');
   const countEl = document.getElementById('s-count');
-  const addBtn  = document.getElementById('btn-add-song');
+  const addBtn = document.getElementById('btn-add-song');
 
   countEl.textContent = state.songs.length;
   if (addBtn) addBtn.style.display = state.songs.length >= 8 ? 'none' : 'flex';
@@ -1342,13 +1325,12 @@ function renderSongPanel() {
         <div class="stitle">${esc(s.title)}</div>
         ${s.memo ? `<div class="smemo">${esc(s.memo)}</div>` : ''}
       </div>
-      ${!state.isViewOnly
-        ? `<button class="btn-sdel" onclick="deleteSong('${s.id}')">
-             <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-               <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
-             </svg>
-           </button>`
-        : ''}
+      ${!state.isViewOnly ? `
+        <button class="btn-sdel" onclick="deleteSong('${s.id}')">
+          <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
+          </svg>
+        </button>` : ''}
     </div>
   `).join('');
 }
@@ -1361,7 +1343,7 @@ function makeDraggable(el, song) {
 
   function down(e) {
     if (e.target.closest('a') || e.target.closest('button')) return;
-    if (orbitActive) return; // no drag during orbit
+    if (orbitActive) return;
     dragging = true;
     el.style.transition = 'none';
     el.style.zIndex = '50';
@@ -1371,7 +1353,6 @@ function makeDraggable(el, song) {
     oy = parseInt(el.style.top)  || 0;
     e.preventDefault();
   }
-
   function move(e) {
     if (!dragging) return;
     const pt = e.touches ? e.touches[0] : e;
@@ -1379,7 +1360,6 @@ function makeDraggable(el, song) {
     el.style.top  = (oy + pt.clientY - sy) + 'px';
     e.preventDefault();
   }
-
   function up() {
     if (!dragging) return;
     dragging = false;
@@ -1399,32 +1379,26 @@ function makeDraggable(el, song) {
 }
 
 /* ═══════════════════════════════════════════
-   ORBIT MODE
+   ORBIT
 ═══════════════════════════════════════════ */
 function toggleOrbit() {
   orbitActive = !orbitActive;
-
   document.getElementById('btn-orbit').classList.toggle('active', orbitActive);
   const row = document.getElementById('orbit-row');
   if (row) row.classList.toggle('active', orbitActive);
-
-  if (orbitActive) {
-    startOrbit();
-  } else {
-    stopOrbit();
-  }
+  if (orbitActive) startOrbit();
+  else stopOrbit();
 }
 
 function startOrbit() {
   if (orbitRAF) cancelAnimationFrame(orbitRAF);
-
   function tick() {
     orbitAngle += 0.0028;
     const canvas = document.getElementById('canvas');
     const cw = canvas.offsetWidth;
     const ch = canvas.offsetHeight;
-    const cx = cw / 2 - 97;   // offset by half-card width
-    const cy = ch * 0.44 - 90; // slightly above center, offset by half-card height
+    const cx = cw / 2 - 97;
+    const cy = ch * 0.44 - 90;
     const rx = clamp(cw * 0.36, 150, 310);
     const ry = clamp(ch * 0.24, 90, 200);
 
@@ -1439,16 +1413,13 @@ function startOrbit() {
       card.style.left = clamp(tx, 4, cw - 200) + 'px';
       card.style.top  = clamp(ty, 58, ch - 190) + 'px';
     });
-
     orbitRAF = requestAnimationFrame(tick);
   }
-
   tick();
 }
 
 function stopOrbit() {
   if (orbitRAF) { cancelAnimationFrame(orbitRAF); orbitRAF = null; }
-  // Freeze positions into state
   document.querySelectorAll('.music-card').forEach(card => {
     const song = state.songs.find(s => s.id === card.dataset.id);
     if (song) {
@@ -1464,7 +1435,6 @@ function stopOrbit() {
    SHARE URL
 ═══════════════════════════════════════════ */
 function generateShare() {
-  // Capture current card positions from DOM
   document.querySelectorAll('.music-card').forEach(card => {
     const song = state.songs.find(s => s.id === card.dataset.id);
     if (song) {
@@ -1504,12 +1474,11 @@ function copyShare() {
 function makeOwn() {
   stopOrbit();
   history.replaceState({}, '', location.pathname);
-  // Deep-copy songs but treat as editable
   state.isViewOnly = false;
   document.getElementById('view-banner').classList.remove('show');
   document.getElementById('btn-edit').style.display = '';
   document.getElementById('btn-orbit').style.display = '';
-  renderCards(); // re-render with delete buttons
+  renderCards();
   closePanel();
   setTimeout(() => togglePanel(), 200);
   showToast('이제 자유롭게 편집해보세요');
@@ -1552,15 +1521,6 @@ function esc(s) {
 }
 function clamp(v, min, max) { return Math.min(Math.max(v, min), max); }
 
-/* ── Keyboard shortcuts ── */
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    closeAddModal();
-    closePanel();
-  }
-});
-
-/* ── Modal backdrop click ── */
 document.getElementById('modal-add').addEventListener('click', function(e) {
   if (e.target === this) closeAddModal();
 });

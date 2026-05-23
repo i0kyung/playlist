@@ -1529,12 +1529,22 @@ function generateShare() {
 }
 
 function copyShare() {
+  const url = document.getElementById('share-box').dataset.url;
+  if (!url) return;
+
+  navigator.clipboard.writeText(url)
+    .then(() => showToast('링크가 복사됐어요'))
+    .catch(() => {
+      prompt('아래 링크를 복사하세요:', url);
+    });
+}
 
 function decodeShareData(raw) {
   // 1) 새 압축 공유 링크 방식
   try {
     if (window.LZString) {
       const json = LZString.decompressFromEncodedURIComponent(raw);
+
       if (json) {
         const compact = JSON.parse(json);
 
@@ -1569,13 +1579,6 @@ function decodeShareData(raw) {
       songs: []
     };
   }
-}
-
-  const url = document.getElementById('share-box').dataset.url;
-  if (!url) return;
-  navigator.clipboard.writeText(url)
-    .then(()  => showToast('링크가 복사됐어요'))
-    .catch(()  => { prompt('아래 링크를 복사하세요:', url); });
 }
 
 /* ═══════════════════════════════════════════

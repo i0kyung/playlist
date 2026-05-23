@@ -93,7 +93,7 @@ html, body {
 }
 
 /* ═══════════════════════════════════════════
-   SCREENS
+   SCREENS  (CRITICAL: don't override position!)
 ═══════════════════════════════════════════ */
 .screen {
   position: fixed; inset: 0; z-index: 10;
@@ -126,7 +126,6 @@ html, body {
   margin-bottom: 30px;
 }
 
-/* ── Carousel ── */
 .carousel {
   position: relative;
   width: 100%;
@@ -145,10 +144,8 @@ html, body {
 
 .car-item {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 270px;
-  height: 380px;
+  top: 50%; left: 50%;
+  width: 270px; height: 380px;
   margin-left: -135px;
   margin-top: -190px;
   transition: transform 0.55s cubic-bezier(.4,0,.2,1),
@@ -160,7 +157,6 @@ html, body {
   align-items: center;
 }
 
-/* card body (glass) */
 .car-card {
   width: 100%;
   flex: 1;
@@ -188,8 +184,7 @@ html, body {
 .car-img {
   width: 100%; height: 100%;
   display: flex; align-items: flex-end; justify-content: center;
-  position: relative;
-  z-index: 1;
+  position: relative; z-index: 1;
 }
 .car-img img {
   max-width: 100%; max-height: 100%;
@@ -198,24 +193,18 @@ html, body {
   pointer-events: none;
 }
 
-.car-label {
-  margin-top: 14px;
-  text-align: center;
-}
+.car-label { margin-top: 14px; text-align: center; }
 .char-badge {
   font-size: 0.66rem; font-weight: 600;
   letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--text-3);
-  display: block;
+  color: var(--text-3); display: block;
 }
 .char-name {
   font-size: 0.95rem; font-weight: 500;
   color: var(--text); letter-spacing: -0.02em;
-  margin-top: 3px;
-  display: block;
+  margin-top: 3px; display: block;
 }
 
-/* Carousel positions */
 .car-item.center {
   transform: scale(1);
   opacity: 1; filter: none;
@@ -238,12 +227,8 @@ html, body {
   filter: blur(1px);
   z-index: 2;
 }
+.car-item.next:hover, .car-item.prev:hover { opacity: 0.7; }
 
-.car-item.next:hover, .car-item.prev:hover {
-  opacity: 0.7;
-}
-
-/* Carousel nav arrows */
 .car-nav {
   position: absolute;
   top: 50%;
@@ -274,10 +259,17 @@ html, body {
 
 /* ═══════════════════════════════════════════
    SCREEN 2 — MAIN
+   IMPORTANT: do NOT override `.screen` position.
+   Just add main-specific styles. The fullscreen
+   fixed positioning is inherited from .screen.
 ═══════════════════════════════════════════ */
-#screen-main { position: relative; }
+#screen-main {
+  /* inherits: position:fixed; inset:0; display:flex; */
+  flex-direction: column;
+}
 
-/* Character layers */
+/* Character layers — absolute relative to the
+   fullscreen .screen container. */
 .character-bg,
 .character-cutout {
   position: absolute;
@@ -286,11 +278,11 @@ html, body {
   transform: translateX(-50%);
   width: clamp(420px, 48vw, 760px);
   height: auto;
-  display: none;
+  display: none;     /* JS sets display:block when loaded */
 }
 .character-bg {
   z-index: 5;
-  opacity: 0.26;
+  opacity: 0.28;
   filter: blur(2.5px) brightness(1.08) saturate(108%);
   pointer-events: none;
 }
@@ -300,7 +292,6 @@ html, body {
   pointer-events: none;
 }
 
-/* Canvas (z:10) */
 #canvas { position: absolute; inset: 0; z-index: 10; }
 
 #pl-overlay {
@@ -320,7 +311,6 @@ html, body {
   line-height: 1.25; letter-spacing: -0.01em;
 }
 
-/* Topbar */
 #topbar {
   position: absolute; top: 0; left: 0; right: 0; z-index: 30;
   height: 54px;
@@ -359,7 +349,6 @@ html, body {
 .gpill.active { background: rgba(91,141,238,0.1); border-color: rgba(91,141,238,0.28); color: var(--accent); }
 .gpill svg { flex-shrink: 0; }
 
-/* Edit panel */
 #edit-panel {
   position: absolute;
   top: 64px; right: 10px; bottom: 10px; z-index: 30;
@@ -571,7 +560,6 @@ html, body {
 }
 .btn-own:hover { background: rgba(91,141,238,0.18); }
 
-/* Music cards */
 .music-card {
   position: absolute;
   width: 194px;
@@ -643,7 +631,6 @@ html, body {
 }
 .c-del:hover { color: #d93636; background: rgba(217,54,54,0.09); }
 
-/* Modal */
 #modal-add {
   position: fixed; inset: 0; z-index: 200;
   display: flex; align-items: center; justify-content: center;
@@ -699,7 +686,6 @@ html, body {
 }
 .btn-madd:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(91,141,238,0.42); }
 
-/* Toast */
 #toast {
   position: fixed; bottom: 28px; left: 50%;
   transform: translateX(-50%) translateY(14px);
@@ -717,7 +703,6 @@ html, body {
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* Mobile */
 @media (max-width: 640px) {
   .carousel { height: 420px; }
   .car-item { width: 230px; height: 340px; margin-left: -115px; margin-top: -170px; }
@@ -726,7 +711,7 @@ html, body {
   .car-nav { width: 40px; height: 40px; }
   .car-prev { left: 4px; }
   .car-next { right: 4px; }
-  .character-bg, .character-cutout { width: clamp(220px, 72vw, 360px); }
+  .character-bg, .character-cutout { width: clamp(280px, 80vw, 480px); }
   .music-card { width: 166px; }
   #edit-panel { width: calc(100vw - 16px); right: 8px; top: 58px; bottom: 8px; }
   .s-logo { font-size: 1.75rem; }
@@ -744,9 +729,7 @@ html, body {
 </div>
 <div id="grain"></div>
 
-<!-- ══════════════════════════════════════════
-     SCREEN 1 — CAROUSEL CHARACTER SELECT
-═══════════════════════════════════════════ -->
+<!-- SCREEN 1 — CHARACTER CAROUSEL -->
 <div class="screen" id="screen-select">
   <p class="s-logo">moodlist</p>
   <p class="s-sub">당신의 감성을 대변할 캐릭터를 선택하세요</p>
@@ -761,9 +744,7 @@ html, body {
     <div class="car-stage" id="car-stage">
       <div class="car-item" data-idx="0" onclick="carouselTap(0)">
         <div class="car-card">
-          <div class="car-img">
-            <img alt="Character 01" data-char="1">
-          </div>
+          <div class="car-img"><img alt="Character 01" data-char="1"></div>
         </div>
         <div class="car-label">
           <span class="char-badge">Character 01</span>
@@ -773,9 +754,7 @@ html, body {
 
       <div class="car-item" data-idx="1" onclick="carouselTap(1)">
         <div class="car-card">
-          <div class="car-img">
-            <img alt="Character 02" data-char="2">
-          </div>
+          <div class="car-img"><img alt="Character 02" data-char="2"></div>
         </div>
         <div class="car-label">
           <span class="char-badge">Character 02</span>
@@ -785,9 +764,7 @@ html, body {
 
       <div class="car-item" data-idx="2" onclick="carouselTap(2)">
         <div class="car-card">
-          <div class="car-img">
-            <img alt="Character 03" data-char="3">
-          </div>
+          <div class="car-img"><img alt="Character 03" data-char="3"></div>
         </div>
         <div class="car-label">
           <span class="char-badge">Character 03</span>
@@ -806,9 +783,7 @@ html, body {
   <p class="select-hint">캐릭터를 눌러 시작하세요</p>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SCREEN 2 — MAIN
-═══════════════════════════════════════════ -->
+<!-- SCREEN 2 — MAIN -->
 <div class="screen hidden" id="screen-main">
 
   <!-- z:5 — character background -->
@@ -859,13 +834,11 @@ html, body {
     <div class="panel-body">
       <div class="ps">
         <div class="plabel">닉네임</div>
-        <input class="pinput" id="inp-nick" type="text" maxlength="20"
-               placeholder="ex) yuna" oninput="updateOverlay()">
+        <input class="pinput" id="inp-nick" type="text" maxlength="20" placeholder="ex) yuna" oninput="updateOverlay()">
       </div>
       <div class="ps">
         <div class="plabel">플레이리스트 제목</div>
-        <input class="pinput" id="inp-title" type="text" maxlength="40"
-               placeholder="ex) 비 오는 날 듣는 노래들" oninput="updateOverlay()">
+        <input class="pinput" id="inp-title" type="text" maxlength="40" placeholder="ex) 비 오는 날 듣는 노래들" oninput="updateOverlay()">
       </div>
 
       <div class="pdiv"></div>
@@ -917,7 +890,6 @@ html, body {
     </div>
   </div>
 
-  <!-- view-only banner -->
   <div id="view-banner">
     <span class="vb-text">공유된 플레이리스트입니다</span>
     <button class="btn-own" onclick="makeOwn()">나도 만들기</button>
@@ -930,8 +902,7 @@ html, body {
     <div class="mbox-title">노래 추가</div>
     <div>
       <div class="plabel">YouTube URL</div>
-      <input class="pinput" id="m-url" type="url"
-             placeholder="https://www.youtube.com/watch?v=..." oninput="previewThumb()">
+      <input class="pinput" id="m-url" type="url" placeholder="https://www.youtube.com/watch?v=..." oninput="previewThumb()">
     </div>
     <div class="thumb-prev" id="m-thumb">
       <span class="thumb-ph">YouTube URL을 입력하면 썸네일이 표시됩니다</span>
@@ -972,34 +943,28 @@ let orbitRAF    = null;
 
 /* ═══════════════════════════════════════════
    IMAGE LOADER WITH FALLBACK
-   - paths 배열을 순서대로 시도, 첫 성공한 이미지를 표시
-   - 모두 실패하면 hide
 ═══════════════════════════════════════════ */
 function loadImageWithFallback(imgEl, paths) {
   let i = 0;
-
-  function next() {
+  imgEl.onload  = function() {
+    imgEl.style.display = 'block';
+  };
+  imgEl.onerror = function() {
     if (i >= paths.length) {
       imgEl.style.display = 'none';
       return;
     }
     imgEl.src = paths[i++];
-  }
-
-  imgEl.onload = function() {
-    imgEl.style.display = 'block';
-    imgEl.classList.add('is-loaded');
   };
-
-  imgEl.onerror = next;
-  next();
+  if (paths.length === 0) { imgEl.style.display = 'none'; return; }
+  imgEl.src = paths[i++];
 }
 
 /* ═══════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', () => {
-  // 1) Carousel character images — fallback chain
+  // 1) Carousel character images
   document.querySelectorAll('.car-item img[data-char]').forEach(img => {
     const n = img.dataset.char;
     loadImageWithFallback(img, [
@@ -1008,7 +973,7 @@ window.addEventListener('DOMContentLoaded', () => {
     ]);
   });
 
-  // 2) Check shared URL data
+  // 2) Shared URL
   const params = new URLSearchParams(location.search);
   const raw = params.get('data');
   if (raw) {
@@ -1063,18 +1028,18 @@ function carouselNext() {
 
 function carouselTap(idx) {
   if (idx === carouselIdx) {
-    // 중앙 캐릭터 탭 → 바로 메인 진입
     state.selectedCharacter = idx + 1;
     saveDraft();
     showMain();
   } else {
-    // 옆 캐릭터 탭 → 회전
     carouselIdx = idx;
     carouselRender();
   }
 }
 
-// Keyboard nav for carousel
+/* ═══════════════════════════════════════════
+   KEYBOARD
+═══════════════════════════════════════════ */
 document.addEventListener('keydown', e => {
   if (!document.getElementById('screen-select').classList.contains('hidden')) {
     if (e.key === 'ArrowLeft')  carouselPrev();
@@ -1099,43 +1064,25 @@ function showMain() {
   document.getElementById('screen-main').classList.remove('hidden');
 
   applyCharacter();
-  updateOverlay();
   updatePanelInputs();
+  updateOverlay();
   renderCards();
 
   if (state.isViewOnly) {
     document.getElementById('view-banner').classList.add('show');
     document.getElementById('btn-edit').style.display = 'none';
     document.getElementById('btn-orbit').style.display = 'none';
-    orbitActive = false;
-    toggleOrbit();
+    // auto-spin in shared view (only if songs exist)
+    if (state.songs.length > 0) {
+      orbitActive = false;
+      toggleOrbit();
+    }
   } else {
-    setTimeout(function() {
+    // 메인 진입 직후 편집 패널 자동 오픈 (UX 요구사항)
+    setTimeout(() => {
       const panel = document.getElementById('edit-panel');
       if (panel) panel.classList.add('open');
-    }, 250);
-  }
-}
-function showMain() {
-  document.getElementById('screen-select').classList.add('hidden');
-  document.getElementById('screen-main').classList.remove('hidden');
-
-  applyCharacter();
-  updateOverlay();
-  updatePanelInputs();
-  renderCards();
-
-  if (state.isViewOnly) {
-    document.getElementById('view-banner').classList.add('show');
-    document.getElementById('btn-edit').style.display = 'none';
-    document.getElementById('btn-orbit').style.display = 'none';
-    orbitActive = false;
-    toggleOrbit();
-  } else {
-    setTimeout(function() {
-      const panel = document.getElementById('edit-panel');
-      if (panel) panel.classList.add('open');
-    }, 250);
+    }, 280);
   }
 }
 
@@ -1152,27 +1099,17 @@ function goSelect() {
 
 /* ═══════════════════════════════════════════
    APPLY CHARACTER LAYERS
-   - cutout: ideal _cutout.png → fallback to character_0X.png
-   - bg    : ideal _bg.png     → fallback to character_0X.png
 ═══════════════════════════════════════════ */
 function applyCharacter() {
   const n = state.selectedCharacter || 1;
 
   loadImageWithFallback(
     document.getElementById('char-bg'),
-    [
-      `character_0${n}_bg.png`,
-      `character_0${n}.png`
-    ]
+    [`character_0${n}_bg.png`, `character_0${n}.png`]
   );
-
   loadImageWithFallback(
     document.getElementById('char-cutout'),
-    [
-      `character_0${n}_cutout.png`,
-      `character_0${n}_transparent.png`,
-      `character_0${n}.png`
-    ]
+    [`character_0${n}_cutout.png`, `character_0${n}.png`]
   );
 }
 
@@ -1182,6 +1119,7 @@ function applyCharacter() {
 function updateOverlay() {
   state.nickname      = document.getElementById('inp-nick').value.trim();
   state.playlistTitle = document.getElementById('inp-title').value.trim();
+  // 사용자가 입력했을 때만 표시 — 기본 "나의 플레이리스트" 텍스트 없음
   document.getElementById('pl-nick').textContent  = state.nickname  || '';
   document.getElementById('pl-title').textContent = state.playlistTitle || '';
   saveDraft();
@@ -1196,15 +1134,12 @@ function updatePanelInputs() {
    PANEL
 ═══════════════════════════════════════════ */
 function togglePanel() {
-  const panel = document.getElementById('edit-panel');
-  if (!panel) return;
-  panel.classList.toggle('open');
+  const p = document.getElementById('edit-panel');
+  if (p) p.classList.toggle('open');
 }
-
 function closePanel() {
-  const panel = document.getElementById('edit-panel');
-  if (!panel) return;
-  panel.classList.remove('open');
+  const p = document.getElementById('edit-panel');
+  if (p) p.classList.remove('open');
 }
 
 /* ═══════════════════════════════════════════
@@ -1220,7 +1155,6 @@ function extractVideoId(url) {
   } catch(e) {}
   return null;
 }
-
 function thumbUrl(videoId) {
   return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 }
@@ -1237,25 +1171,19 @@ function openAddModal() {
   document.getElementById('modal-add').classList.add('open');
   setTimeout(() => document.getElementById('m-url').focus(), 100);
 }
-
 function closeAddModal() {
   document.getElementById('modal-add').classList.remove('open');
 }
-
 function previewThumb() {
   const vid = extractVideoId(document.getElementById('m-url').value.trim());
   const box = document.getElementById('m-thumb');
   if (vid) {
     box.innerHTML = `<img src="${thumbUrl(vid)}" alt="thumb"
       onerror="this.parentElement.innerHTML='<span class=thumb-ph>썸네일을 불러올 수 없어요</span>'">`;
-  } else {
-    resetThumb();
-  }
+  } else resetThumb();
 }
-
 function resetThumb() {
-  document.getElementById('m-thumb').innerHTML =
-    '<span class="thumb-ph">YouTube URL을 입력하면 썸네일이 표시됩니다</span>';
+  document.getElementById('m-thumb').innerHTML = '<span class="thumb-ph">YouTube URL을 입력하면 썸네일이 표시됩니다</span>';
 }
 
 function addSong() {
@@ -1263,36 +1191,31 @@ function addSong() {
   const title   = document.getElementById('m-stitle').value.trim();
   const memo    = document.getElementById('m-memo').value.trim();
   const videoId = extractVideoId(url);
-
   if (!url)     { showToast('YouTube URL을 입력해주세요'); return; }
   if (!videoId) { showToast('유효한 YouTube 링크가 아닙니다'); return; }
   if (!title)   { showToast('노래 제목을 입력해주세요'); return; }
 
   const canvas = document.getElementById('canvas');
   const cw = canvas.offsetWidth, ch = canvas.offsetHeight;
-
   const zones = [
-    { x: cw * 0.04, y: ch * 0.10 },
-    { x: cw * 0.62, y: ch * 0.08 },
-    { x: cw * 0.04, y: ch * 0.48 },
-    { x: cw * 0.62, y: ch * 0.46 },
-    { x: cw * 0.30, y: ch * 0.05 },
-    { x: cw * 0.04, y: ch * 0.78 },
-    { x: cw * 0.62, y: ch * 0.76 },
-    { x: cw * 0.30, y: ch * 0.72 },
+    { x: cw*0.04, y: ch*0.10 },
+    { x: cw*0.62, y: ch*0.08 },
+    { x: cw*0.04, y: ch*0.48 },
+    { x: cw*0.62, y: ch*0.46 },
+    { x: cw*0.30, y: ch*0.05 },
+    { x: cw*0.04, y: ch*0.78 },
+    { x: cw*0.62, y: ch*0.76 },
+    { x: cw*0.30, y: ch*0.72 },
   ];
-
-  const idx = state.songs.length % zones.length;
-  const z   = zones[idx];
-  const jitter = () => (Math.random() - 0.5) * 36;
+  const z = zones[state.songs.length % zones.length];
+  const j = () => (Math.random() - 0.5) * 36;
 
   const song = {
     id: Date.now().toString(),
     videoId, title, memo,
-    x: clamp(z.x + jitter(), 4, cw - 200),
-    y: clamp(z.y + jitter(), 58, ch - 190),
+    x: clamp(z.x + j(), 4, cw - 200),
+    y: clamp(z.y + j(), 58, ch - 190),
   };
-
   state.songs.push(song);
   closeAddModal();
   renderCards();
@@ -1309,7 +1232,7 @@ function deleteSong(id) {
 }
 
 /* ═══════════════════════════════════════════
-   RENDER CARDS
+   CARDS
 ═══════════════════════════════════════════ */
 function renderCards() {
   document.querySelectorAll('.music-card').forEach(c => c.remove());
@@ -1329,19 +1252,15 @@ function buildCard(song) {
   card.dataset.id = song.id;
   card.innerHTML = `
     <div class="c-thumb">
-      <img src="${thumbUrl(song.videoId)}" alt="${esc(song.title)}"
-           onerror="this.style.opacity='0'">
+      <img src="${thumbUrl(song.videoId)}" alt="${esc(song.title)}" onerror="this.style.opacity='0'">
     </div>
     <div class="c-body">
       <div class="c-title">${esc(song.title)}</div>
       ${song.memo ? `<div class="c-memo">${esc(song.memo)}</div>` : ''}
     </div>
     <div class="c-foot">
-      <a class="c-play" href="https://www.youtube.com/watch?v=${song.videoId}"
-         target="_blank" rel="noopener noreferrer" title="YouTube에서 재생">
-        <svg width="10" height="10" viewBox="0 0 12 12">
-          <polygon points="3,1.5 10.5,6 3,10.5" fill="white"/>
-        </svg>
+      <a class="c-play" href="https://www.youtube.com/watch?v=${song.videoId}" target="_blank" rel="noopener noreferrer" title="YouTube에서 재생">
+        <svg width="10" height="10" viewBox="0 0 12 12"><polygon points="3,1.5 10.5,6 3,10.5" fill="white"/></svg>
       </a>
       ${!state.isViewOnly ? `
         <button class="c-del" onclick="deleteSong('${song.id}')" title="삭제">
@@ -1355,18 +1274,15 @@ function buildCard(song) {
 }
 
 function renderSongPanel() {
-  const list   = document.getElementById('song-list-p');
-  const countEl = document.getElementById('s-count');
+  const list = document.getElementById('song-list-p');
+  document.getElementById('s-count').textContent = state.songs.length;
   const addBtn = document.getElementById('btn-add-song');
-
-  countEl.textContent = state.songs.length;
   if (addBtn) addBtn.style.display = state.songs.length >= 8 ? 'none' : 'flex';
 
   if (!state.songs.length) {
     list.innerHTML = '<div class="song-empty">아직 추가된 노래가 없어요</div>';
     return;
   }
-
   list.innerHTML = state.songs.map(s => `
     <div class="song-row-p">
       <img class="sthumb" src="${thumbUrl(s.videoId)}" alt="" onerror="this.style.opacity='0'">
@@ -1385,11 +1301,10 @@ function renderSongPanel() {
 }
 
 /* ═══════════════════════════════════════════
-   DRAG & DROP
+   DRAG
 ═══════════════════════════════════════════ */
 function makeDraggable(el, song) {
   let dragging = false, sx, sy, ox, oy;
-
   function down(e) {
     if (e.target.closest('a') || e.target.closest('button')) return;
     if (orbitActive) return;
@@ -1418,7 +1333,6 @@ function makeDraggable(el, song) {
     song.y = parseInt(el.style.top)  || 0;
     saveDraft();
   }
-
   el.addEventListener('mousedown',  down,  { passive: false });
   el.addEventListener('touchstart', down,  { passive: false });
   window.addEventListener('mousemove',  move, { passive: false });
@@ -1431,19 +1345,17 @@ function makeDraggable(el, song) {
    ORBIT
 ═══════════════════════════════════════════ */
 function toggleOrbit() {
+  // 곡이 없을 때 안내 (UX 요구사항)
   if (state.songs.length === 0) {
     showToast('노래를 먼저 추가해주세요');
-    const panel = document.getElementById('edit-panel');
-    if (panel) panel.classList.add('open');
+    const p = document.getElementById('edit-panel');
+    if (p && !state.isViewOnly) p.classList.add('open');
     return;
   }
-
   orbitActive = !orbitActive;
   document.getElementById('btn-orbit').classList.toggle('active', orbitActive);
-
   const row = document.getElementById('orbit-row');
   if (row) row.classList.toggle('active', orbitActive);
-
   if (orbitActive) startOrbit();
   else stopOrbit();
 }
@@ -1459,10 +1371,8 @@ function startOrbit() {
     const cy = ch * 0.44 - 90;
     const rx = clamp(cw * 0.36, 150, 310);
     const ry = clamp(ch * 0.24, 90, 200);
-
     const cards = document.querySelectorAll('.music-card');
     const n = cards.length;
-
     cards.forEach((card, i) => {
       const angle = orbitAngle + (i / n) * Math.PI * 2;
       const tx = cx + Math.cos(angle) * rx;
@@ -1490,7 +1400,7 @@ function stopOrbit() {
 }
 
 /* ═══════════════════════════════════════════
-   SHARE URL
+   SHARE
 ═══════════════════════════════════════════ */
 function generateShare() {
   document.querySelectorAll('.music-card').forEach(card => {
@@ -1500,17 +1410,14 @@ function generateShare() {
       song.y = parseInt(card.style.top)  || 0;
     }
   });
-
   const payload = {
     nickname:          state.nickname,
     playlistTitle:     state.playlistTitle,
     selectedCharacter: state.selectedCharacter,
     songs:             state.songs,
   };
-
   const encoded = btoa(encodeURIComponent(JSON.stringify(payload)));
   const url = `${location.origin}${location.pathname}?data=${encoded}`;
-
   const box = document.getElementById('share-box');
   box.dataset.url = url;
   box.textContent = '클릭하여 링크 복사 — ' + url.slice(0, 52) + (url.length > 52 ? '...' : '');
@@ -1537,13 +1444,12 @@ function makeOwn() {
   document.getElementById('btn-edit').style.display = '';
   document.getElementById('btn-orbit').style.display = '';
   renderCards();
-  closePanel();
   setTimeout(() => togglePanel(), 200);
   showToast('이제 자유롭게 편집해보세요');
 }
 
 /* ═══════════════════════════════════════════
-   LOCALSTORAGE DRAFT
+   LOCALSTORAGE
 ═══════════════════════════════════════════ */
 function saveDraft() {
   if (state.isViewOnly) return;
@@ -1573,9 +1479,7 @@ function showToast(msg) {
    UTILS
 ═══════════════════════════════════════════ */
 function esc(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 function clamp(v, min, max) { return Math.min(Math.max(v, min), max); }
 

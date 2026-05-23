@@ -720,7 +720,10 @@ html, body {
   #edit-panel { width: calc(100vw - 16px); right: 8px; top: 58px; bottom: 8px; }
   .s-logo { font-size: 1.75rem; }
 }
+
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 </head>
 <body>
 
@@ -982,7 +985,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const raw = params.get('data');
   if (raw) {
     try {
-      const decoded = JSON.parse(decodeURIComponent(atob(raw)));
+      const decoded = decodeShareData(raw);
       state = { ...decoded, isViewOnly: true };
       showMain();
       return;
@@ -1496,25 +1499,78 @@ function generateShare() {
     const song = state.songs.find(s => s.id === card.dataset.id);
     if (song) {
       song.x = parseInt(card.style.left) || 0;
-      song.y = parseInt(card.style.top)  || 0;
+      song.y = parseInt(card.style.top) || 0;
     }
   });
-  const payload = {
-    nickname:          state.nickname,
-    playlistTitle:     state.playlistTitle,
-    selectedCharacter: state.selectedCharacter,
-    songs:             state.songs,
+
+  const compact = {
+    n: state.nickname || '',
+    t: state.playlistTitle || '',
+    c: state.selectedCharacter || 1,
+    s: state.songs.map(song => [
+      song.videoId,
+      song.title,
+      song.memo || '',
+      Math.round(song.x || 0),
+      Math.round(song.y || 0)
+    ])
   };
-  const encoded = btoa(encodeURIComponent(JSON.stringify(payload)));
+
+  const json = JSON.stringify(compact);
+  const encoded = LZString.compressToEncodedURIComponent(json);
   const url = `${location.origin}${location.pathname}?data=${encoded}`;
+
   const box = document.getElementById('share-box');
   box.dataset.url = url;
-  box.textContent = '클릭하여 링크 복사 — ' + url.slice(0, 52) + (url.length > 52 ? '...' : '');
+  box.textContent = '클릭하여 링크 복사 — ' + url.slice(0, 64) + (url.length > 64 ? '...' : '');
   box.classList.add('visible');
-  showToast('공유 링크가 생성됐어요');
+
+  showToast('압축된 공유 링크가 생성됐어요');
 }
 
 function copyShare() {
+
+function decodeShareData(raw) {
+  // 1) 새 압축 공유 링크 방식
+  try {
+    if (window.LZString) {
+      const json = LZString.decompressFromEncodedURIComponent(raw);
+      if (json) {
+        const compact = JSON.parse(json);
+
+        return {
+          nickname: compact.n || '',
+          playlistTitle: compact.t || '',
+          selectedCharacter: compact.c || 1,
+          songs: (compact.s || []).map((item, index) => ({
+            id: Date.now().toString() + '_' + index,
+            videoId: item[0],
+            title: item[1],
+            memo: item[2] || '',
+            x: item[3] || 80,
+            y: item[4] || 120
+          }))
+        };
+      }
+    }
+  } catch(e) {
+    console.warn('compressed share decode failed', e);
+  }
+
+  // 2) 기존 긴 링크 방식 fallback
+  try {
+    return JSON.parse(decodeURIComponent(atob(raw)));
+  } catch(e) {
+    console.warn('legacy share decode failed', e);
+    return {
+      selectedCharacter: 1,
+      nickname: '',
+      playlistTitle: '',
+      songs: []
+    };
+  }
+}
+
   const url = document.getElementById('share-box').dataset.url;
   if (!url) return;
   navigator.clipboard.writeText(url)

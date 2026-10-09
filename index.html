@@ -41,64 +41,111 @@
 </div>
 <div id="grain"></div>
 
-<!-- SCREEN 1 — LANDING + CHARACTER SELECT -->
-<div class="screen" id="screen-select">
+<!-- SCREEN 1 — INTRO: 심볼 스플래시 → 일러스트 랜딩 → 온보딩(이름 · 캐릭터 · 제목) -->
+<div class="screen" id="screen-select" data-stage="splash">
   <header class="home-top">
-    <a class="home-logo" href="./" aria-label="moodlist 홈">
-      <img src="brand/moodlist_wordmark.webp" alt="moodlist" width="720" height="226">
-    </a>
-    <nav class="home-nav" aria-label="메뉴">
-      <button type="button" onclick="openAbout()">About</button>
-      <button type="button" onclick="carouselStart()">Create</button>
-    </nav>
+    <img class="home-logo" src="brand/moodlist_wordmark.webp" alt="moodlist" width="720" height="226">
   </header>
 
-  <main class="home-main">
-    <p class="home-copy">좋아하는 음악을 모아,<br>당신만의 moodlist를 만들어보세요.</p>
-    <p class="home-sub">choose a character · collect songs · share your mood</p>
+  <!-- 공전하는 3D 오브젝트 (랜딩·온보딩 공용) -->
+  <div class="intro-orbit" id="intro-orbit" aria-hidden="true">
+    <svg class="orbit-ring" id="orbit-ring" preserveAspectRatio="none">
+      <ellipse class="ring-a" id="ring-a"/>
+      <ellipse class="ring-b" id="ring-b"/>
+    </svg>
+    <img class="orb" src="icons/headphones.webp" alt="">
+    <img class="orb" src="icons/cassette.webp" alt="">
+    <img class="orb" src="icons/star.webp" alt="">
+    <img class="orb" src="icons/note.webp" alt="">
+    <img class="orb" src="icons/heart.webp" alt="">
+    <img class="orb" src="icons/playlist-card.webp" alt="">
+    <img class="orb" src="icons/book.webp" alt="">
+    <img class="orb" src="icons/vinyl-case.webp" alt="">
+    <img class="orb" src="icons/cloud.webp" alt="">
+    <span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span>
+  </div>
 
-    <div class="home-stage" id="carousel">
-      <div class="home-glow" aria-hidden="true"></div>
-      <img class="home-char" id="home-char" src="characters/char_01.webp" alt="">
-      <div class="home-shadow" aria-hidden="true"></div>
-    </div>
+  <!-- 엎드린 캐릭터 일러스트 (랜딩 ↔ 온보딩 카드 사이를 이동) -->
+  <img class="intro-hero" id="intro-hero" src="scenes/moodlist_hero-rest.webp" alt="">
 
-    <div class="home-meta" aria-live="polite">
-      <span class="char-badge" id="char-badge">CHARACTER 01</span>
-      <span class="char-name" id="char-name">The Reader</span>
-      <span class="char-mood" id="char-tags">quiet · warm · afternoon</span>
-    </div>
+  <!-- 스플래시: 앱 심볼 -->
+  <div class="splash" aria-hidden="true">
+    <div class="splash-glow"></div>
+    <img class="splash-icon" src="icon-512.png" alt="">
+  </div>
 
-    <div class="face-picker" id="car-dots" role="radiogroup" aria-label="캐릭터 선택"></div>
-
-    <button class="sel-cta" onclick="carouselStart()">
-      moodlist 만들기
+  <!-- 랜딩 -->
+  <section class="landing">
+    <h1 class="land-copy">
+      <span class="lc-1">좋아하는 음악을 모아,</span>
+      <span class="lc-2">당신만의 <img src="brand/moodlist_wordmark.webp" alt="moodlist"></span>
+    </h1>
+    <div class="land-art" id="land-art"></div>
+    <button class="sel-cta land-cta" id="land-cta" onclick="introStart()">
+      <span id="land-cta-text">시작하기</span>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
     </button>
-  </main>
+  </section>
 
-  <footer class="home-foot">choose&nbsp;&nbsp;·&nbsp;&nbsp;collect&nbsp;&nbsp;·&nbsp;&nbsp;share</footer>
-</div>
+  <!-- 온보딩 카드 -->
+  <section class="onboard">
+    <div class="ob-card" id="ob-card">
+      <button class="ob-back" onclick="obBack()" aria-label="이전">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="ob-dots"><i></i><i></i><i></i></div>
 
-<!-- ABOUT SHEET -->
-<div class="sheet" id="sheet-about" onclick="if(event.target===this)closeAbout()">
-  <div class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="about-title">
-    <button class="sheet-x" onclick="closeAbout()" aria-label="닫기">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
-    </button>
-    <img class="about-img" src="scenes/moodlist_trio-room.webp" alt="음악을 듣고 있는 moodlist 캐릭터들">
-    <div class="about-body">
-      <img class="about-symbol" src="icon-192.png" alt="">
-      <h2 id="about-title">작은 음악 행성을 만드는 곳</h2>
-      <p>moodlist는 나를 대신할 캐릭터 주변에 좋아하는 음악을 띄워,<br>하나의 링크로 공유하는 감성 플레이리스트예요.</p>
-      <ol class="about-steps">
-        <li><b>Choose</b><span>나를 대신할 캐릭터를 고르고</span></li>
-        <li><b>Orbit</b><span>좋아하는 음악이 캐릭터 주변을 돌게 하고</span></li>
-        <li><b>Share</b><span>완성한 moodlist를 링크로 공유해요</span></li>
-      </ol>
-      <button class="sel-cta sel-cta--block" onclick="closeAbout(); carouselStart()">moodlist 만들기</button>
+      <div class="ob-steps">
+        <!-- 1. 이름 -->
+        <div class="ob-step" data-step="1">
+          <div class="ob-art" id="ob-art"></div>
+          <label class="ob-field">
+            <span>이름</span>
+            <input id="ob-name" type="text" maxlength="16" autocomplete="nickname" placeholder="닉네임" enterkeyhint="next">
+            <button type="button" class="ob-clear" onclick="obClear('ob-name')" aria-label="지우기">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="2.5" y1="2.5" x2="9.5" y2="9.5"/><line x1="9.5" y1="2.5" x2="2.5" y2="9.5"/></svg>
+            </button>
+          </label>
+          <p class="ob-hint">나만의 <img src="brand/moodlist_wordmark.webp" alt="moodlist"> 이름을 저장해요</p>
+        </div>
+
+        <!-- 2. 캐릭터 -->
+        <div class="ob-step" data-step="2">
+          <div class="home-stage" id="carousel">
+            <div class="home-glow"></div>
+            <img class="home-char" id="home-char" src="characters/char_01.webp" alt="">
+            <div class="home-shadow"></div>
+          </div>
+          <div class="home-meta" aria-live="polite">
+            <span class="char-name" id="char-name">The Reader</span>
+            <span class="char-mood" id="char-tags">quiet · warm · afternoon</span>
+          </div>
+          <div class="face-picker" id="car-dots" role="radiogroup" aria-label="캐릭터 선택"></div>
+        </div>
+
+        <!-- 3. 제목 -->
+        <div class="ob-step" data-step="3">
+          <div class="ob-ready">
+            <img class="ob-ready-face" id="ob-face" alt="">
+            <span class="ob-ready-name" id="ob-ready-name"></span>
+          </div>
+          <label class="ob-field">
+            <span>제목</span>
+            <input id="ob-title" type="text" maxlength="40" placeholder="비 오는 날 듣는 노래들" enterkeyhint="done">
+            <button type="button" class="ob-clear" onclick="obClear('ob-title')" aria-label="지우기">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="2.5" y1="2.5" x2="9.5" y2="9.5"/><line x1="9.5" y1="2.5" x2="2.5" y2="9.5"/></svg>
+            </button>
+          </label>
+          <p class="ob-hint">나중에 언제든 바꿀 수 있어요</p>
+        </div>
+      </div>
+
+      <button class="sel-cta ob-next" id="ob-next" onclick="obNext()">
+        <span id="ob-next-text">다음</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
+      </button>
     </div>
-  </div>
+  </section>
 </div>
 
 <!-- SCREEN 2 — MAIN -->
@@ -120,10 +167,10 @@
       <div class="pl-title" id="pl-title"></div>
       <div class="pl-count" id="pl-count"></div>
     </div>
-  </div>
 
-  <!-- z:20 — character cutout -->
-  <img class="character-cutout" id="char-cutout" alt="">
+    <!-- 캐릭터도 카드와 같은 레이어 안에 둬서, Orbit 카드가 앞(z>20)·뒤(z<20)를 지나갈 수 있게 -->
+    <img class="character-cutout" id="char-cutout" alt="">
+  </div>
 
   <!-- z:30 — topbar -->
   <div id="topbar">
@@ -142,6 +189,9 @@
         </svg>
         편집
       </button>
+      <button class="tb-avatar" id="btn-profile" onclick="openProfile()" aria-label="프로필">
+        <img id="tb-face" alt="">
+      </button>
     </div>
   </div>
 
@@ -157,10 +207,6 @@
     </div>
 
     <div class="panel-body">
-      <div class="ps">
-        <div class="plabel">닉네임</div>
-        <input class="pinput" id="inp-nick" type="text" maxlength="20" placeholder="ex) yuna" oninput="updateOverlay()">
-      </div>
       <div class="ps">
         <div class="plabel">플레이리스트 제목</div>
         <input class="pinput" id="inp-title" type="text" maxlength="40" placeholder="ex) 비 오는 날 듣는 노래들" oninput="updateOverlay()">
@@ -189,17 +235,6 @@
 
       <div class="pdiv"></div>
 
-      <div class="ps">
-        <div class="plabel">캐릭터 변경</div>
-        <button class="btn-char-switch" onclick="goSelect()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
-          </svg>
-          캐릭터 다시 선택
-        </button>
-      </div>
-
-      <div class="pdiv"></div>
 
       <div class="ps">
         <button class="btn-preview" onclick="enterPreview()">
@@ -232,6 +267,59 @@
     <div class="pv-acts">
       <button class="btn-ghost" onclick="exitPreview()">편집으로</button>
       <button class="btn-own" onclick="exitPreview(); generateShare()">공유 링크 만들기</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE POPOVER — macOS/iPadOS 느낌: 버튼에서 피어나듯 열림 + 내부 push 내비게이션 -->
+<div class="pop-scrim" id="pop-scrim" onclick="closeProfile()"></div>
+<div class="profile-pop" id="profile-pop" role="dialog" aria-modal="true" aria-label="프로필">
+  <div class="pp-pages" id="pp-pages">
+    <!-- 메인 -->
+    <div class="pp-page pp-main">
+      <button class="pp-x" onclick="closeProfile()" aria-label="닫기">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
+      </button>
+      <button class="pp-avatar" onclick="ppPush()" aria-label="캐릭터 바꾸기">
+        <img id="pp-face" alt="">
+        <span class="pp-cam">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </span>
+      </button>
+
+      <div class="pp-label">이름</div>
+      <label class="pp-field">
+        <input id="pp-name" type="text" maxlength="16" placeholder="닉네임" oninput="ppNameInput()">
+        <button type="button" class="ob-clear" onclick="obClear('pp-name'); ppNameInput()" aria-label="지우기">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="2.5" y1="2.5" x2="9.5" y2="9.5"/><line x1="9.5" y1="2.5" x2="2.5" y2="9.5"/></svg>
+        </button>
+      </label>
+
+      <div class="pp-label">캐릭터</div>
+      <button class="pp-row" onclick="ppPush()">
+        <img class="pp-row-face" id="pp-row-face" alt="">
+        <span id="pp-char-name"></span>
+        <svg class="pp-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+
+      <div class="pp-label">공유 링크</div>
+      <div class="pp-field pp-link">
+        <input id="pp-link" type="text" readonly placeholder="노래를 추가하면 링크가 생겨요" onclick="this.select()">
+        <button type="button" class="pp-copy" onclick="ppCopy()" aria-label="링크 복사">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 캐릭터 선택 (push) -->
+    <div class="pp-page pp-sub">
+      <div class="pp-subhead">
+        <button class="pp-backbtn" onclick="ppPop()" aria-label="뒤로">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span>캐릭터</span>
+      </div>
+      <div class="pp-grid" id="pp-grid"></div>
     </div>
   </div>
 </div>

@@ -7,11 +7,11 @@
 ## ✨ 화면 구성
 | 화면 | 역할 |
 |---|---|
-| Landing + Character Select | 워드마크 · 짧은 소개 · 공중에 뜬 캐릭터 · 6종 얼굴 선택기 (선택 시 배경 중앙 glow만 캐릭터 컬러로) |
-| Editor | 캐릭터 + 음악 카드 Orbit · 노래 추가/메모 · 작성자 정보 |
-| Preview | 공개 화면과 똑같이 미리보기 → 바로 공유 링크 만들기 |
-| Share Complete | 링크 · 복사 · 공유하기(Web Share) · 새 탭 열기 |
-| Public | 방문자 화면 (에디터와 같은 구조) + "나도 만들기" |
+| Splash | 새로고침마다 앱 심볼이 떠오른 뒤 열리듯 커지며 일러스트로 전환 (클릭 불필요, 클릭 시 바로 진행) |
+| Landing | 엎드린 캐릭터 일러스트 + 3D 오브젝트 공전 + 한 줄 카피 + 시작하기 |
+| Onboarding | 유리 카드 3단계: 이름 → 캐릭터(6종 얼굴) → 제목. 이름·캐릭터는 기기에 저장(`moodlist_profile`) |
+| Editor | 캐릭터 + 음악 카드 3D Orbit(앞·뒤로 지나감) · 프로필 팝오버(이름·캐릭터·공유 링크) |
+| Preview · Share · Public | 공개 화면 미리보기 · 공유 완료 시트 · 방문자 화면 |
 
 - **6종 캐릭터** — Reader · Listener · Dreamer · Poet · Sunshine · Midnight (번호 1~3은 기존 공유 링크와 호환)
 - **멀티 플랫폼** — YouTube · Spotify · Apple Music · SoundCloud, 인라인 미니 플레이어

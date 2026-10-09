@@ -238,7 +238,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const decoded = decodeShareData(raw);
       state = { ...decoded, isViewOnly: true };
       state.songs = state.songs.map(normalizeSong);
-      showMain();
+      runSplash('public');
       return;
     } catch(e) { console.warn('URL data parse error', e); }
   }
@@ -252,8 +252,14 @@ window.addEventListener('DOMContentLoaded', () => {
       carouselIdx = clamp(state.selectedCharacter - 1, 0, CHARACTERS.length - 1);
     }
   } catch(e) {}
+  const prof = loadProfile();
+  if (prof) {
+    if (prof.name) state.nickname = prof.name;
+    if (prof.char) state.selectedCharacter = prof.char;
+  }
 
-  carouselRender();
+  // 새로고침마다: 심볼 → 일러스트 연출 (클릭 불필요)
+  runSplash('landing');
 });
 
 /* 리사이즈 → 카드 재배치 (비율 기반) */
@@ -286,7 +292,6 @@ let charSwapT;
 function carouselRender() {
   const c = CHARACTERS[carouselIdx];
   setAccent(c.n);
-  document.getElementById('char-badge').textContent = `CHARACTER ${String(c.n).padStart(2, '0')}`;
   document.getElementById('char-name').textContent  = c.name;
   document.getElementById('char-tags').textContent  = c.tags;
   document.querySelectorAll('.face-btn').forEach((b, i) => {
@@ -348,16 +353,17 @@ function carouselNext() {
    KEYBOARD
 ═══════════════════════════════════════════ */
 document.addEventListener('keydown', e => {
-  if (!document.getElementById('screen-select').classList.contains('hidden') && !document.querySelector('.sheet.open')) {
+  const intro = document.getElementById('screen-select');
+  if (!intro.classList.contains('hidden') && intro.dataset.stage === 'onboard' && obStep === 2 && e.target.tagName !== 'INPUT') {
     if (e.key === 'ArrowLeft')  carouselPrev();
     if (e.key === 'ArrowRight') carouselNext();
-    if (e.key === 'Enter' && !e.target.closest('button')) carouselStart();
+    if (e.key === 'Enter' && !e.target.closest('button')) obNext();
     if (e.target.classList && e.target.classList.contains('face-btn') && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
       setTimeout(() => document.querySelector('.face-btn.active')?.focus(), 0);
     }
   }
   if (e.key === 'Escape') {
-    closeAddModal(); closePanel(); closePlayer(); closeAbout(); closeShareDone();
+    closeAddModal(); closePanel(); closePlayer(); closeShareDone(); closeProfile();
     if (document.body.classList.contains('previewing')) exitPreview();
   }
 });
@@ -368,6 +374,8 @@ document.addEventListener('keydown', e => {
 function showMain() {
   document.getElementById('screen-select').classList.add('hidden');
   document.getElementById('screen-main').classList.remove('hidden');
+  stopIntroLoop();
+  document.getElementById('btn-profile').style.display = state.isViewOnly ? 'none' : '';
 
   applyCharacter();
   updatePanelInputs();
@@ -381,25 +389,22 @@ function showMain() {
     document.getElementById('btn-edit').style.display = 'none';
     document.getElementById('btn-orbit').style.display = 'none';
     if (state.songs.length > 0) { orbitActive = false; toggleOrbit(); }
-  } else {
+  } else if (state.songs.length === 0) {
     setTimeout(() => {
       const panel = document.getElementById('edit-panel');
       if (panel) panel.classList.add('open');
-    }, 280);
+    }, 420);
   }
 }
 
 function goSelect() {
-  stopOrbit();
-  closePanel();
-  closePlayer();
+  if (orbitActive) toggleOrbit();
+  closePanel(); closePlayer(); closeProfile();
   resetParallax();
   document.getElementById('screen-main').classList.add('hidden');
   document.getElementById('screen-select').classList.remove('hidden');
-  if (state.selectedCharacter) {
-    carouselIdx = clamp(state.selectedCharacter - 1, 0, CHARACTERS.length - 1);
-  }
-  carouselRender();
+  setAccentHex('#a893d4');
+  showLanding();
 }
 
 function applyCharacter() {
@@ -407,6 +412,7 @@ function applyCharacter() {
   setAccent(n);
   loadImageWithFallback(document.getElementById('char-cutout'), [charImg(n)]);
   document.getElementById('pl-face').src = charFace(n);
+  document.getElementById('tb-face').src = charFace(n);
   document.getElementById('pl-char').textContent = charOf(n).name;
 }
 
@@ -414,7 +420,6 @@ function applyCharacter() {
    OVERLAY / PANEL
 ═══════════════════════════════════════════ */
 function updateOverlay() {
-  state.nickname      = document.getElementById('inp-nick').value.trim();
   state.playlistTitle = document.getElementById('inp-title').value.trim();
   document.getElementById('pl-nick').textContent  = state.nickname || '';
   document.getElementById('pl-title').textContent = state.playlistTitle || '';
@@ -426,7 +431,6 @@ function updateSongCount() {
   document.getElementById('pl-count').textContent = n ? `♪ ${n} songs in orbit` : '';
 }
 function updatePanelInputs() {
-  document.getElementById('inp-nick').value  = state.nickname || '';
   document.getElementById('inp-title').value = state.playlistTitle || '';
 }
 function togglePanel() { document.getElementById('edit-panel').classList.toggle('open'); }
@@ -680,7 +684,7 @@ function makeDraggable(el, song) {
     oy = parseInt(el.style.top)  || 0;
     holdTimer = setTimeout(() => {
       if (!pressed) return;
-      dragging = true; pauseOrbitForDrag();
+      dragging = true; pauseOrbitForDrag(); clearDepth(el);
       el.classList.add('dragging'); el.style.zIndex = '60';
     }, HOLD_MS);
     e.preventDefault();
@@ -692,7 +696,7 @@ function makeDraggable(el, song) {
     if (Math.abs(dx) > MOVE_THRESHOLD || Math.abs(dy) > MOVE_THRESHOLD) moved = true;
     if (moved && !dragging) {
       clearTimeout(holdTimer);
-      dragging = true; pauseOrbitForDrag();
+      dragging = true; pauseOrbitForDrag(); clearDepth(el);
       el.classList.add('dragging'); el.style.zIndex = '60';
     }
     if (!dragging) return;
@@ -768,14 +772,31 @@ function startOrbit() {
       const ty = cy + Math.sin(angle) * ry;
       card.style.left = clamp(tx, 4, cw - cardW - 4) + 'px';
       card.style.top  = clamp(ty, CARD_TOP, ch - cardH - 4) + 'px';
+      applyDepth(card, Math.sin(angle));
     });
     orbitRAF = requestAnimationFrame(tick);
   }
   tick();
 }
 
+/* 3D 링 깊이: depth = sin(angle)  -1(뒤·위) … +1(앞·아래)
+   캐릭터(z:20)를 기준으로 앞쪽 반은 위로, 뒤쪽 반은 아래로 지나간다. */
+function applyDepth(card, depth) {
+  const t = (depth + 1) / 2;                       // 0(가장 뒤) ~ 1(가장 앞)
+  card.style.zIndex    = depth > 0 ? String(30 + Math.round(depth * 10)) : String(1 + Math.round(t * 10));
+  card.style.transform = `scale(${(0.72 + t * 0.34).toFixed(3)})`;
+  card.style.opacity   = (0.55 + t * 0.45).toFixed(3);
+  if (HOVER_CAPABLE) {  // 모바일은 성능 위해 블러 생략
+    card.style.filter = depth < 0 ? `blur(${(-depth * 1.4).toFixed(2)}px) saturate(${(1 + depth * 0.2).toFixed(2)})` : '';
+  }
+}
+function clearDepth(card) {
+  card.style.zIndex = ''; card.style.transform = ''; card.style.opacity = ''; card.style.filter = '';
+}
+
 function stopOrbit() {
   if (orbitRAF) { cancelAnimationFrame(orbitRAF); orbitRAF = null; }
+  document.querySelectorAll('.music-card').forEach(clearDepth);
   const { w, h } = cardMetrics();
   document.querySelectorAll('.music-card').forEach(card => {
     const song = state.songs.find(s => s.id === card.dataset.id);
@@ -886,7 +907,7 @@ function applyParallax(nx, ny) {
   if (grid)   grid.style.transform   = `translate3d(${(-nx * 12).toFixed(1)}px, ${(-ny * 8).toFixed(1)}px, 0)`;
   if (bgImg)  bgImg.style.transform  = `translateX(-50%) translate3d(${(nx * 10).toFixed(1)}px, ${(ny * 7).toFixed(1)}px, 0)`;
   if (canvas) canvas.style.transform = `translate3d(${(nx * 16).toFixed(1)}px, ${(ny * 11).toFixed(1)}px, 0)`;
-  if (cut)    cut.style.transform    = `translateX(-50%) translate3d(${(nx * 26).toFixed(1)}px, ${(ny * 17).toFixed(1)}px, 0)`;
+  if (cut)    cut.style.transform    = `translateX(-50%) translate3d(${(nx * 10).toFixed(1)}px, ${(ny * 6).toFixed(1)}px, 0)`;  // canvas 안이라 상대값
 }
 function resetParallax() {
   const grid   = document.getElementById('bg-grid');
@@ -927,7 +948,10 @@ function generateShare() {
   if (orbitActive) stopOrbit(); // 현재 위치 확정
 
   if (state.songs.length === 0) { showToast('노래를 한 곡 이상 추가해주세요'); return; }
+  openShareDone(buildShareUrl());
+}
 
+function buildShareUrl() {
   // 페이로드: [char, nick, title, [ [pcode, urlOrId, title, memo, x36, y36], ... ]]
   const payload = [
     state.selectedCharacter || 1,
@@ -943,9 +967,7 @@ function generateShare() {
 
   const json = JSON.stringify(payload);
   const encoded = LZString.compressToEncodedURIComponent(json);
-  const url = `${location.origin}${location.pathname}?data=${encoded}`;
-
-  openShareDone(url);
+  return `${location.origin}${location.pathname}?data=${encoded}`;
 }
 
 /* SHARE COMPLETE */
@@ -1016,9 +1038,7 @@ function exitPreview() {
   if (previewOrbitWas) toggleOrbit();
 }
 
-/* ABOUT */
-function openAbout()  { document.getElementById('sheet-about').classList.add('open'); }
-function closeAbout() { const el = document.getElementById('sheet-about'); if (el) el.classList.remove('open'); }
+
 
 function decodeShareData(raw) {
   const json = window.LZString ? LZString.decompressFromEncodedURIComponent(raw) : null;
@@ -1096,6 +1116,11 @@ function makeOwn() {
   stopOrbit();
   history.replaceState({}, '', location.pathname);
   state.isViewOnly = false;
+  const prof = loadProfile();
+  state.nickname = (prof && prof.name) || '';
+  if (prof && prof.char) { state.selectedCharacter = prof.char; applyCharacter(); }
+  updateOverlay();
+  document.getElementById('btn-profile').style.display = '';
   document.getElementById('view-banner').classList.remove('show');
   document.getElementById('btn-edit').style.display = '';
   document.getElementById('btn-orbit').style.display = '';
@@ -1148,3 +1173,328 @@ document.addEventListener('DOMContentLoaded', () => {
   const modal = document.getElementById('modal-add');
   if (modal) modal.addEventListener('click', function(e) { if (e.target === this) closeAddModal(); });
 });
+
+/* ═══════════════════════════════════════════
+   PROFILE (이름 · 캐릭터 저장)
+═══════════════════════════════════════════ */
+const PROFILE_KEY = 'moodlist_profile';
+function loadProfile() {
+  try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null'); } catch(e) { return null; }
+}
+function saveProfile() {
+  if (state.isViewOnly) return;
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({
+      name: state.nickname || '',
+      char: state.selectedCharacter || 1,
+    }));
+  } catch(e) {}
+}
+
+/* ═══════════════════════════════════════════
+   INTRO — 심볼 스플래시 → 일러스트 랜딩 → 온보딩
+═══════════════════════════════════════════ */
+const introEl = () => document.getElementById('screen-select');
+function setStage(st) { introEl().dataset.stage = st; }
+let introNext = 'landing';   // splash 이후 목적지: 'landing' | 'public'
+let introLaunchT = null;
+
+function runSplash(next) {
+  introNext = next || 'landing';
+  setStage('splash');
+  const hero = document.getElementById('intro-hero');
+  hero.classList.remove('on', 'off');
+  orbitSetMode('splash', true);
+  startIntroLoop();
+  clearTimeout(introLaunchT);
+  introLaunchT = setTimeout(introLaunch, REDUCED_MOTION ? 150 : 1150);
+  // 클릭하면 바로 열기 (기다리기 싫은 사용자용)
+  introEl().addEventListener('pointerdown', introLaunch, { once: true });
+}
+
+function introLaunch() {
+  if (introEl().dataset.stage !== 'splash') return;
+  clearTimeout(introLaunchT);
+  if (introNext === 'public') {
+    // 공유 링크: 심볼이 열리며 바로 공개 화면으로
+    setStage('launch');
+    setTimeout(showMain, REDUCED_MOTION ? 0 : 380);
+    return;
+  }
+  showLanding();
+}
+
+function showLanding() {
+  setStage('landing');
+  const prof = loadProfile();
+  const name = (prof && prof.name) || state.nickname;
+  document.getElementById('land-cta-text').textContent =
+    (prof || state.selectedCharacter) ? (name ? `${name}의 moodlist` : '이어서 만들기') : '시작하기';
+  heroTo(document.getElementById('land-art'));
+  orbitSetMode('landing');
+  startIntroLoop();
+}
+
+/* 일러스트를 대상 영역에 맞춰 이동 (랜딩 ↔ 카드) */
+function heroTo(target) {
+  const hero = document.getElementById('intro-hero');
+  if (!target) { hero.classList.remove('on'); hero.classList.add('off'); return; }
+  const place = () => {
+    const r = target.getBoundingClientRect();
+    if (!r.width) return;
+    const w = Math.min(r.width, r.height * (770 / 510));
+    hero.style.left  = (r.left + r.width / 2) + 'px';
+    hero.style.top   = (r.top + r.height / 2) + 'px';
+    hero.style.width = w + 'px';
+  };
+  place();
+  hero.classList.remove('off'); hero.classList.add('on');
+  heroTarget = target;
+  setTimeout(place, 650);   // 카드 등장 애니메이션 끝난 뒤 위치 보정
+}
+let heroTarget = null;
+
+function introStart() {
+  const prof = loadProfile();
+  if (prof || state.selectedCharacter) {     // 돌아온 사용자 → 바로 내 moodlist
+    if (prof) {
+      if (!state.nickname) state.nickname = prof.name || '';
+      if (!state.selectedCharacter) state.selectedCharacter = prof.char || 1;
+    }
+    showMain();
+    return;
+  }
+  setStage('onboard');
+  orbitSetMode('onboard');
+  obGo(1);
+}
+
+/* ── 온보딩 3단계 ── */
+let obStep = 1;
+function obGo(n, back) {
+  obStep = n;
+  const card = document.getElementById('ob-card');
+  card.dataset.step = n;
+  document.querySelectorAll('.ob-step').forEach(st => {
+    const on = Number(st.dataset.step) === n;
+    st.classList.toggle('active', on);
+    st.classList.toggle('from-back', on && !!back);
+  });
+  document.getElementById('ob-next-text').textContent = n < 3 ? '다음' : '시작하기';
+
+  if (n === 1) {
+    document.getElementById('ob-name').value = state.nickname || '';
+    heroTo(document.getElementById('ob-art'));
+    focusSoon('ob-name');
+  } else {
+    heroTo(null);
+  }
+  if (n === 2) {
+    carouselIdx = clamp((state.selectedCharacter || 1) - 1, 0, CHARACTERS.length - 1);
+    carouselRender();
+  } else {
+    setAccentHex('#a893d4');
+  }
+  if (n === 3) {
+    const c = charOf(state.selectedCharacter);
+    setAccent(c.n);
+    document.getElementById('ob-face').src = charFace(c.n);
+    document.getElementById('ob-ready-name').textContent = state.nickname || '';
+    document.getElementById('ob-title').value = state.playlistTitle || '';
+    focusSoon('ob-title');
+  }
+  setTimeout(() => orbitSetMode('onboard'), 30);
+}
+function focusSoon(id) {
+  if (!HOVER_CAPABLE) return;   // 모바일은 키보드가 화면을 가리지 않도록 자동 포커스 생략
+  setTimeout(() => document.getElementById(id)?.focus(), 420);
+}
+function obNext() {
+  if (obStep === 1) {
+    const name = document.getElementById('ob-name').value.trim();
+    if (!name) { shake(document.querySelector('.ob-step[data-step="1"] .ob-field')); return; }
+    state.nickname = name;
+    saveProfile();
+    obGo(2);
+  } else if (obStep === 2) {
+    state.selectedCharacter = carouselIdx + 1;
+    saveProfile();
+    obGo(3);
+  } else {
+    state.playlistTitle = document.getElementById('ob-title').value.trim();
+    saveProfile();
+    saveDraft();
+    showMain();
+  }
+}
+function obBack() { if (obStep > 1) obGo(obStep - 1, true); }
+function obClear(id) { const el = document.getElementById(id); el.value = ''; el.focus(); }
+function shake(el) {
+  if (!el) return;
+  el.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(7px)' },
+              { transform: 'translateX(-4px)' }, { transform: 'translateX(0)' }], { duration: 380, easing: 'ease-out' });
+  el.querySelector('input')?.focus();
+}
+['ob-name', 'ob-title'].forEach(id => {
+  document.getElementById(id)?.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); obNext(); }
+  });
+});
+
+function setAccentHex(hex) {
+  const [r, g, b] = hexToRgb(hex);
+  const root = document.documentElement.style;
+  root.setProperty('--char-accent', hex);
+  root.setProperty('--glow', `rgba(${r},${g},${b},0.11)`);
+  root.setProperty('--glow-strong', `rgba(${r},${g},${b},0.22)`);
+}
+
+/* ═══════════════════════════════════════════
+   INTRO ORBIT — 3D 오브젝트가 일러스트/카드 주위를 공전
+   depth = sin(angle): 앞(+)은 크고 선명, 뒤(-)는 작고 흐림
+═══════════════════════════════════════════ */
+const io = { cx: 0, cy: 0, rx: 0, ry: 0, k: 0, angle: -0.6, mode: 'splash', raf: null };
+const ioTarget = { cx: 0, cy: 0, rx: 0, ry: 0, k: 0 };
+
+function orbitSetMode(mode, snap) {
+  io.mode = mode;
+  const W = window.innerWidth, H = window.innerHeight;
+  if (mode === 'splash') {
+    Object.assign(ioTarget, { cx: W / 2, cy: H / 2, rx: 0, ry: 0, k: 0 });
+  } else if (mode === 'landing') {
+    const r = document.getElementById('land-art').getBoundingClientRect();
+    Object.assign(ioTarget, {
+      cx: r.left + r.width / 2, cy: r.top + r.height * 0.58,
+      rx: Math.min(r.width * 0.72, W * 0.47), ry: Math.max(r.height * 0.42, 70), k: 1,
+    });
+  } else if (mode === 'onboard') {
+    const r = document.getElementById('ob-card').getBoundingClientRect();
+    const narrow = W < 700;
+    Object.assign(ioTarget, {
+      cx: W / 2, cy: r.top + r.height * 0.5,
+      rx: narrow ? W * 0.5 : Math.min(r.width / 2 + 190, W * 0.47),
+      ry: narrow ? r.height * 0.56 : r.height * 0.34, k: 1,
+    });
+  }
+  if (snap) Object.assign(io, ioTarget);
+}
+
+function startIntroLoop() {
+  if (io.raf) return;
+  const items = [...document.querySelectorAll('#intro-orbit .orb')];
+  const sparks = [...document.querySelectorAll('#intro-orbit .spark')];
+  const ringA = document.getElementById('ring-a');
+  const ringB = document.getElementById('ring-b');
+  ringA.setAttribute('pathLength', '1'); ringB.setAttribute('pathLength', '1');
+  const blurOK = HOVER_CAPABLE;
+
+  const tick = () => {
+    const ease = REDUCED_MOTION ? 1 : 0.075;
+    for (const key of ['cx', 'cy', 'rx', 'ry', 'k']) io[key] += (ioTarget[key] - io[key]) * ease;
+    if (!REDUCED_MOTION) io.angle += 0.0032;
+
+    ringA.setAttribute('cx', io.cx); ringA.setAttribute('cy', io.cy);
+    ringA.setAttribute('rx', Math.max(io.rx, 0.1)); ringA.setAttribute('ry', Math.max(io.ry, 0.1));
+    ringB.setAttribute('cx', io.cx); ringB.setAttribute('cy', io.cy + io.ry * 0.12);
+    ringB.setAttribute('rx', Math.max(io.rx * 0.9, 0.1)); ringB.setAttribute('ry', Math.max(io.ry * 1.18, 0.1));
+
+    const onboard = io.mode === 'onboard';
+    const n = items.length;
+    items.forEach((el, i) => {
+      const a = io.angle + (i / n) * Math.PI * 2;
+      const d = Math.sin(a), t = (d + 1) / 2;
+      const x = io.cx + Math.cos(a) * io.rx;
+      const y = io.cy + d * io.ry + Math.sin(a * 2 + i) * 6;
+      const s = (0.62 + t * 0.5) * (0.4 + 0.6 * io.k);
+      const half = el.offsetWidth / 2;
+      el.style.transform = `translate3d(${(x - half).toFixed(1)}px, ${(y - half).toFixed(1)}px, 0) scale(${s.toFixed(3)}) rotate(${(Math.sin(a + i) * 10).toFixed(1)}deg)`;
+      el.style.opacity = (io.k * (0.5 + t * 0.5)).toFixed(3);
+      // 랜딩: 앞쪽은 일러스트 위(z6), 뒤쪽은 아래(z2) / 온보딩: 카드(z5) 뒤로만
+      el.style.zIndex = d > 0 ? (onboard ? 3 : 6) : 2;
+      if (blurOK) el.style.filter = d < 0 ? `blur(${(-d * 1.8).toFixed(2)}px) drop-shadow(0 10px 14px rgba(110,80,150,0.16))` : '';
+    });
+    sparks.forEach((el, i) => {
+      const a = -io.angle * 1.3 + (i / sparks.length) * Math.PI * 2 + 0.4;
+      const d = Math.sin(a);
+      const x = io.cx + Math.cos(a) * io.rx * 0.9;
+      const y = io.cy + io.ry * 0.12 + d * io.ry * 1.18;
+      el.style.transform = `translate3d(${(x - 6).toFixed(1)}px, ${(y - 6).toFixed(1)}px, 0) scale(${(0.7 + (d + 1) * 0.35).toFixed(2)})`;
+      el.style.opacity = (io.k * (0.55 + 0.45 * Math.abs(Math.sin(io.angle * 3 + i)))).toFixed(2);
+      el.style.zIndex = d > 0 ? (onboard ? 3 : 6) : 2;
+    });
+    io.raf = requestAnimationFrame(tick);
+  };
+  io.raf = requestAnimationFrame(tick);
+}
+function stopIntroLoop() { if (io.raf) { cancelAnimationFrame(io.raf); io.raf = null; } }
+
+window.addEventListener('resize', () => {
+  if (introEl().classList.contains('hidden')) return;
+  orbitSetMode(io.mode);
+  if (heroTarget && document.getElementById('intro-hero').classList.contains('on')) heroTo(heroTarget);
+});
+
+/* ═══════════════════════════════════════════
+   PROFILE POPOVER
+═══════════════════════════════════════════ */
+function openProfile() {
+  const pop = document.getElementById('profile-pop');
+  const btn = document.getElementById('btn-profile');
+  fillProfile();
+  // 버튼 위치에서 피어나도록 transform-origin 계산
+  const pr = pop.getBoundingClientRect(), br = btn.getBoundingClientRect();
+  pop.style.transformOrigin = `${(br.left + br.width / 2 - pr.left).toFixed(0)}px ${(br.top + br.height / 2 - pr.top).toFixed(0)}px`;
+  pop.classList.remove('pushed');
+  closePanel();
+  requestAnimationFrame(() => {
+    pop.classList.add('open');
+    document.getElementById('pop-scrim').classList.add('open');
+  });
+}
+function closeProfile() {
+  const pop = document.getElementById('profile-pop');
+  if (!pop || !pop.classList.contains('open')) return;
+  pop.classList.remove('open');
+  document.getElementById('pop-scrim').classList.remove('open');
+  setTimeout(() => pop.classList.remove('pushed'), 260);
+}
+function fillProfile() {
+  const c = charOf(state.selectedCharacter);
+  document.getElementById('pp-face').src = charFace(c.n);
+  document.getElementById('pp-row-face').src = charFace(c.n);
+  document.getElementById('pp-char-name').textContent = c.name;
+  const nameEl = document.getElementById('pp-name');
+  if (document.activeElement !== nameEl) nameEl.value = state.nickname || '';
+  document.getElementById('pp-link').value = state.songs.length ? buildShareUrl() : '';
+  const grid = document.getElementById('pp-grid');
+  grid.innerHTML = CHARACTERS.map(ch => `
+    <button class="pp-pick${ch.n === c.n ? ' active' : ''}" style="--face-accent:${ch.accent}" onclick="ppPick(${ch.n})">
+      <img src="${charFace(ch.n)}" alt=""><span>${ch.name.replace('The ', '')}</span>
+    </button>`).join('');
+}
+function ppPush() { document.getElementById('profile-pop').classList.add('pushed'); }
+function ppPop()  { document.getElementById('profile-pop').classList.remove('pushed'); }
+function ppPick(n) {
+  state.selectedCharacter = n;
+  applyCharacter();
+  saveProfile(); saveDraft();
+  fillProfile();
+  setTimeout(ppPop, 260);
+}
+function ppNameInput() {
+  state.nickname = document.getElementById('pp-name').value.trim();
+  document.getElementById('pl-nick').textContent = state.nickname;
+  saveProfile(); saveDraft();
+}
+function ppCopy() {
+  if (!state.songs.length) { showToast('노래를 한 곡 이상 추가해주세요'); return; }
+  const url = buildShareUrl();
+  document.getElementById('pp-link').value = url;
+  const ok = () => {
+    const b = document.querySelector('.pp-copy');
+    b.classList.add('done'); setTimeout(() => b.classList.remove('done'), 1400);
+    showToast('링크가 복사됐어요');
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(ok).catch(() => { document.getElementById('pp-link').select(); document.execCommand('copy'); ok(); });
+  else { document.getElementById('pp-link').select(); document.execCommand('copy'); ok(); }
+}

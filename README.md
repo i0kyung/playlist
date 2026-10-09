@@ -4,25 +4,32 @@
 캐릭터 위 캔버스에 음악을 **글래스 카드**로 흩뿌리고, 드래그로 배치하고, 카드를 누르면
 화면 안에서 바로 재생됩니다.
 
-## ✨ 주요 기능
-- **캐릭터 선택** — 3종 캐러셀에서 무드에 맞는 캐릭터 선택
-- **멀티 플랫폼** — YouTube · Spotify · Apple Music · SoundCloud (링크 붙여넣으면 자동 인식)
-- **인라인 미니 플레이어** — 카드를 누르면 새 탭 없이 화면 안에서 바로 재생
-- **2D인데 3D 같은 입체감** — 카드 3D 틸트 + 마우스/기울기 기반 씬 패럴랙스
-- **Orbit 회전** — 카드들이 캐릭터 주위를 공전하는 애니메이션
-- **드래그 배치** — 카드를 자유롭게 옮겨 나만의 무드 씬 구성
-- **링크 공유** — LZString 압축으로 데이터를 URL에 담아 서버 없이 공유 (받는 사람은 감상 전용, "나도 만들기"로 편집 전환)
-- **반응형** — 카드 위치를 비율(%)로 저장해 어떤 화면 크기에서도 레이아웃 유지
-- **자동 저장** — localStorage 초안 저장
+## ✨ 화면 구성
+| 화면 | 역할 |
+|---|---|
+| Landing + Character Select | 워드마크 · 짧은 소개 · 공중에 뜬 캐릭터 · 6종 얼굴 선택기 (선택 시 배경 중앙 glow만 캐릭터 컬러로) |
+| Editor | 캐릭터 + 음악 카드 Orbit · 노래 추가/메모 · 작성자 정보 |
+| Preview | 공개 화면과 똑같이 미리보기 → 바로 공유 링크 만들기 |
+| Share Complete | 링크 · 복사 · 공유하기(Web Share) · 새 탭 열기 |
+| Public | 방문자 화면 (에디터와 같은 구조) + "나도 만들기" |
+
+- **6종 캐릭터** — Reader · Listener · Dreamer · Poet · Sunshine · Midnight (번호 1~3은 기존 공유 링크와 호환)
+- **멀티 플랫폼** — YouTube · Spotify · Apple Music · SoundCloud, 인라인 미니 플레이어
+- **앱 아이덴티티** — 심볼은 파비콘 · 홈 화면 아이콘(PWA manifest) · 공유 미리보기(og-image)로 노출
+- **링크 공유** — LZString 압축 URL, 서버 없음 · localStorage 초안 저장
 
 ## 📁 구조
 ```
-index.html   구조(마크업)
-style.css    스타일 (글래스 UI · 3D · 반응형)
-app.js       로직 (플랫폼 감지 · 임베드 · 드래그 · Orbit · 패럴랙스 · 공유)
-character_0[1~3]_bg/cutout.png   캐릭터 이미지
+index.html · style.css · app.js     구조 · 스타일 · 로직
+manifest.webmanifest                 홈 화면 추가(앱처럼 실행)
+icon-192/512.png · icon-maskable-512.png · apple-touch-icon.png · favicon-32.png · og-image.png
+brand/       moodlist_symbol.png(앱 심볼 원본) · moodlist_wordmark(.png/.webp) · moodlist_icon-sheet.png
+characters/  char_0N.webp(웹용 전신) · char_0N_face.webp(얼굴) · char_0N_<이름>_front/back/sheet.png(원본)
+scenes/      moodlist_trio-room · moodlist_listener-desk (About 등)
+icons/       3D 아이콘 16종 (icon-sheet에서 분리)
+v1/ · 기존/   이전 버전 자산 · 코드 백업
 ```
-외부 의존성은 CDN의 Pretendard · Playfair Display 폰트와 lz-string 뿐. 그 외 정적 웹.
+> 저장소에는 사이트가 실제로 쓰는 웹용 파일만 올립니다. 원본 PNG(`_front/_back/_sheet`, brand·scenes 원본)와 `v1/` · `기존/` 백업은 로컬에만 보관합니다.
 
 ## 🚀 사용
 `index.html`을 브라우저로 열면 끝. (로컬에서 Spotify/SoundCloud 썸네일·임베드 로딩은

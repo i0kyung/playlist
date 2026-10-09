@@ -3,9 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#edf0f6">
+<meta name="theme-color" content="#fafafc">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="moodlist">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="moodlist">
+<meta property="og:title" content="moodlist — 캐릭터와 함께 만드는 나만의 음악 행성">
+<meta property="og:description" content="좋아하는 음악을 모아, 당신만의 moodlist를 만들어보세요.">
+<meta property="og:image" content="https://i0kyung.github.io/playlist/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <title>moodlist</title>
-<meta name="description" content="감성 캐릭터와 함께 나만의 플레이리스트를 만들고 링크 하나로 공유하세요.">
+<meta name="description" content="좋아하는 음악을 모아, 당신만의 moodlist를 만들어보세요. 캐릭터를 고르고, 음악을 띄우고, 링크로 공유하는 감성 플레이리스트.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,67 +34,71 @@
 </head>
 <body>
 
-<!-- BACKGROUND -->
+<!-- BACKGROUND — 밝은 grid 고정, 중앙 glow만 캐릭터 컬러로 변화 -->
 <div id="bg">
   <div id="bg-grid"></div>
-  <div class="blob blob-1"></div>
-  <div class="blob blob-2"></div>
-  <div class="blob blob-3"></div>
+  <div id="bg-glow"></div>
 </div>
 <div id="grain"></div>
 
-<!-- SCREEN 1 — CHARACTER CAROUSEL -->
+<!-- SCREEN 1 — LANDING + CHARACTER SELECT -->
 <div class="screen" id="screen-select">
-  <p class="s-logo">moodlist</p>
-  <p class="s-sub">당신의 감성을 대변할 캐릭터를 선택하세요</p>
+  <header class="home-top">
+    <a class="home-logo" href="./" aria-label="moodlist 홈">
+      <img src="brand/moodlist_wordmark.webp" alt="moodlist" width="720" height="226">
+    </a>
+    <nav class="home-nav" aria-label="메뉴">
+      <button type="button" onclick="openAbout()">About</button>
+      <button type="button" onclick="carouselStart()">Create</button>
+    </nav>
+  </header>
 
-  <div class="carousel">
-    <button class="car-nav car-prev" onclick="carouselPrev()" aria-label="이전">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"/>
-      </svg>
-    </button>
+  <main class="home-main">
+    <p class="home-copy">좋아하는 음악을 모아,<br>당신만의 moodlist를 만들어보세요.</p>
+    <p class="home-sub">choose a character · collect songs · share your mood</p>
 
-    <div class="car-stage" id="car-stage">
-      <div class="car-item" data-idx="0" onclick="carouselTap(0)">
-        <div class="car-card">
-          <div class="car-img"><img alt="Character 01" data-char="1"></div>
-        </div>
-        <div class="car-label">
-          <span class="char-badge">Character 01</span>
-          <span class="char-name">The Reader</span>
-        </div>
-      </div>
-
-      <div class="car-item" data-idx="1" onclick="carouselTap(1)">
-        <div class="car-card">
-          <div class="car-img"><img alt="Character 02" data-char="2"></div>
-        </div>
-        <div class="car-label">
-          <span class="char-badge">Character 02</span>
-          <span class="char-name">The Listener</span>
-        </div>
-      </div>
-
-      <div class="car-item" data-idx="2" onclick="carouselTap(2)">
-        <div class="car-card">
-          <div class="car-img"><img alt="Character 03" data-char="3"></div>
-        </div>
-        <div class="car-label">
-          <span class="char-badge">Character 03</span>
-          <span class="char-name">The Dreamer</span>
-        </div>
-      </div>
+    <div class="home-stage" id="carousel">
+      <div class="home-glow" aria-hidden="true"></div>
+      <img class="home-char" id="home-char" src="characters/char_01.webp" alt="">
+      <div class="home-shadow" aria-hidden="true"></div>
     </div>
 
-    <button class="car-nav car-next" onclick="carouselNext()" aria-label="다음">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="9 18 15 12 9 6"/>
-      </svg>
-    </button>
-  </div>
+    <div class="home-meta" aria-live="polite">
+      <span class="char-badge" id="char-badge">CHARACTER 01</span>
+      <span class="char-name" id="char-name">The Reader</span>
+      <span class="char-mood" id="char-tags">quiet · warm · afternoon</span>
+    </div>
 
-  <p class="select-hint">캐릭터를 눌러 시작하세요</p>
+    <div class="face-picker" id="car-dots" role="radiogroup" aria-label="캐릭터 선택"></div>
+
+    <button class="sel-cta" onclick="carouselStart()">
+      moodlist 만들기
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
+    </button>
+  </main>
+
+  <footer class="home-foot">choose&nbsp;&nbsp;·&nbsp;&nbsp;collect&nbsp;&nbsp;·&nbsp;&nbsp;share</footer>
+</div>
+
+<!-- ABOUT SHEET -->
+<div class="sheet" id="sheet-about" onclick="if(event.target===this)closeAbout()">
+  <div class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="about-title">
+    <button class="sheet-x" onclick="closeAbout()" aria-label="닫기">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
+    </button>
+    <img class="about-img" src="scenes/moodlist_trio-room.webp" alt="음악을 듣고 있는 moodlist 캐릭터들">
+    <div class="about-body">
+      <img class="about-symbol" src="icon-192.png" alt="">
+      <h2 id="about-title">작은 음악 행성을 만드는 곳</h2>
+      <p>moodlist는 나를 대신할 캐릭터 주변에 좋아하는 음악을 띄워,<br>하나의 링크로 공유하는 감성 플레이리스트예요.</p>
+      <ol class="about-steps">
+        <li><b>Choose</b><span>나를 대신할 캐릭터를 고르고</span></li>
+        <li><b>Orbit</b><span>좋아하는 음악이 캐릭터 주변을 돌게 하고</span></li>
+        <li><b>Share</b><span>완성한 moodlist를 링크로 공유해요</span></li>
+      </ol>
+      <button class="sel-cta sel-cta--block" onclick="closeAbout(); carouselStart()">moodlist 만들기</button>
+    </div>
+  </div>
 </div>
 
 <!-- SCREEN 2 — MAIN -->
@@ -90,8 +110,15 @@
   <!-- z:10 — cards canvas -->
   <div id="canvas">
     <div id="pl-overlay">
-      <div class="pl-nick" id="pl-nick"></div>
+      <div class="pl-author">
+        <img class="pl-face" id="pl-face" alt="">
+        <div>
+          <div class="pl-nick" id="pl-nick"></div>
+          <div class="pl-char" id="pl-char"></div>
+        </div>
+      </div>
       <div class="pl-title" id="pl-title"></div>
+      <div class="pl-count" id="pl-count"></div>
     </div>
   </div>
 
@@ -100,7 +127,7 @@
 
   <!-- z:30 — topbar -->
   <div id="topbar">
-    <span class="tb-logo">moodlist</span>
+    <a class="tb-logo" href="./" onclick="if(!state.isViewOnly){event.preventDefault();goSelect();}" aria-label="moodlist 홈"><img src="brand/moodlist_wordmark.webp" alt="moodlist"></a>
     <div class="tb-right">
       <button class="gpill" id="btn-orbit" onclick="toggleOrbit()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -175,22 +202,62 @@
       <div class="pdiv"></div>
 
       <div class="ps">
+        <button class="btn-preview" onclick="enterPreview()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+          공개 화면 미리보기
+        </button>
         <button class="btn-share" onclick="generateShare()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
             <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
             <polyline points="16 6 12 2 8 6"/>
             <line x1="12" y1="2" x2="12" y2="15"/>
           </svg>
-          공유 링크 생성
+          공유 링크 만들기
         </button>
-        <div class="share-url-box" id="share-box" onclick="copyShare()"></div>
       </div>
     </div>
   </div>
 
+  <!-- 공개 화면(방문자) 하단 바 -->
   <div id="view-banner">
-    <span class="vb-text">공유된 플레이리스트입니다</span>
+    <span class="vb-text"><img class="vb-symbol" src="icon-192.png" alt=""><span id="vb-text">공유된 moodlist예요</span></span>
     <button class="btn-own" onclick="makeOwn()">나도 만들기</button>
+  </div>
+
+  <!-- 미리보기 하단 바 -->
+  <div id="preview-banner">
+    <span class="vb-text"><span class="pv-dot"></span>미리보기 · 방문자에게 이렇게 보여요</span>
+    <div class="pv-acts">
+      <button class="btn-ghost" onclick="exitPreview()">편집으로</button>
+      <button class="btn-own" onclick="exitPreview(); generateShare()">공유 링크 만들기</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE COMPLETE -->
+<div class="sheet" id="sheet-share" onclick="if(event.target===this)closeShareDone()">
+  <div class="sheet-box share-box" role="dialog" aria-modal="true" aria-labelledby="share-title">
+    <button class="sheet-x" onclick="closeShareDone()" aria-label="닫기">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
+    </button>
+    <div class="share-hero">
+      <img class="share-char" id="share-char" alt="">
+    </div>
+    <h2 id="share-title">moodlist가 완성됐어요</h2>
+    <p class="share-desc" id="share-desc"></p>
+    <div class="share-url">
+      <input id="share-url" type="text" readonly aria-label="공유 링크" onclick="this.select()">
+      <button class="btn-copy" onclick="copyShare()">복사</button>
+    </div>
+    <div class="share-acts">
+      <button class="btn-share" id="btn-native-share" onclick="nativeShare()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        공유하기
+      </button>
+      <a class="btn-ghost" id="share-open" target="_blank" rel="noopener">새 탭에서 열어보기</a>
+    </div>
   </div>
 </div>
 

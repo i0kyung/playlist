@@ -23,6 +23,34 @@ let orbitActive = false;
 let orbitAngle  = 0;
 let orbitRAF    = null;
 
+/* 캐릭터 컬렉션 (번호는 공유 링크 호환: 1~3 기존 유지) */
+const CHARACTERS = [
+  { n: 1, name: 'The Reader',    tags: 'quiet · warm · afternoon', accent: '#9b8ac9', ink: '#6f5fa6' }, // Lavender
+  { n: 2, name: 'The Listener',  tags: 'calm · night · slow',      accent: '#8b9bb4', ink: '#5d6f8c' }, // Cool Gray / Blue
+  { n: 3, name: 'The Dreamer',   tags: 'cozy · dreamy · late',     accent: '#8a9466', ink: '#626c41' }, // Muted Olive
+  { n: 4, name: 'The Poet',      tags: 'soft · rainy · still',     accent: '#a7abb3', ink: '#6c717b' }, // Silver Gray
+  { n: 5, name: 'The Sunshine',  tags: 'bright · warm · groove',   accent: '#e3b341', ink: '#a67c12' }, // Warm Yellow
+  { n: 6, name: 'The Midnight',  tags: 'bold · deep · midnight',   accent: '#8f3a4b', ink: '#7a2c3c' }, // Burgundy
+];
+const charOf = n => CHARACTERS[(n || 1) - 1] || CHARACTERS[0];
+const charImg  = n => `characters/char_0${charOf(n).n}.webp`;
+const charFace = n => `characters/char_0${charOf(n).n}_face.webp`;
+
+function hexToRgb(hex) {
+  const v = parseInt(hex.slice(1), 16);
+  return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+}
+/* 배경 grid는 그대로, 중앙 radial glow만 캐릭터 컬러로 (8~12%) */
+function setAccent(n) {
+  const c = charOf(n);
+  const [r, g, b] = hexToRgb(c.accent);
+  const root = document.documentElement.style;
+  root.setProperty('--char-accent', c.accent);
+  root.setProperty('--char-accent-ink', c.ink);
+  root.setProperty('--glow', `rgba(${r},${g},${b},0.11)`);
+  root.setProperty('--glow-strong', `rgba(${r},${g},${b},0.22)`);
+}
+
 const MAX_SONGS = 8;
 const CARD_TOP  = 64;    // topbar 아래 여백
 const thumbCache = {};   // url -> thumbnail url (oEmbed 결과 캐시)
@@ -170,7 +198,7 @@ function normalizeSong(s, i) {
       yp = clamp(((s.y || 80) - CARD_TOP) / Math.max(1, ch - 190 - CARD_TOP - 8), 0, 1);
     } else {
       xp = 0.05 + (i % 3) * 0.34;
-      yp = 0.06 + Math.floor(i / 3) * 0.32;
+      yp = (i % 3 === 0 ? 0.30 : 0.06) + Math.floor(i / 3) * 0.32;  // 좌상단 작성자 정보 피하기
     }
   }
   return {
@@ -193,11 +221,14 @@ function setVH() {
 window.addEventListener('DOMContentLoaded', () => {
   setVH();
 
-  // 1) 캐러셀 캐릭터 이미지
-  document.querySelectorAll('.car-item img[data-char]').forEach(img => {
-    const n = img.dataset.char;
-    loadImageWithFallback(img, [`character_0${n}_cutout.png`, `character_0${n}.png`]);
-  });
+  // 1) 6종 얼굴 선택기 + 이미지 미리 로드
+  const picker = document.getElementById('car-dots');
+  picker.innerHTML = CHARACTERS.map((c, i) => {
+    const [r, g, b] = hexToRgb(c.accent);
+    return `<button class="face-btn" role="radio" aria-label="${c.name}" onclick="carouselGo(${i})"
+      style="--face-accent:${c.accent};--face-glow:rgba(${r},${g},${b},0.35)"><img src="${charFace(c.n)}" alt=""></button>`;
+  }).join('');
+  CHARACTERS.forEach(c => { const im = new Image(); im.src = charImg(c.n); });
 
   // 2) 공유 URL
   const params = new URLSearchParams(location.search);
@@ -218,7 +249,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (draft && draft.selectedCharacter) {
       state = { ...draft, isViewOnly: false };
       state.songs = (state.songs || []).map(normalizeSong);
-      carouselIdx = state.selectedCharacter - 1;
+      carouselIdx = clamp(state.selectedCharacter - 1, 0, CHARACTERS.length - 1);
     }
   } catch(e) {}
 
@@ -251,16 +282,40 @@ function repositionCards() {
 /* ═══════════════════════════════════════════
    CAROUSEL
 ═══════════════════════════════════════════ */
+let charSwapT;
 function carouselRender() {
-  const items = document.querySelectorAll('.car-item');
-  const total = items.length;
-  items.forEach((item, i) => {
-    item.classList.remove('center', 'prev', 'next');
-    const off = ((i - carouselIdx) % total + total) % total;
-    if (off === 0)      item.classList.add('center');
-    else if (off === 1) item.classList.add('next');
-    else                item.classList.add('prev');
+  const c = CHARACTERS[carouselIdx];
+  setAccent(c.n);
+  document.getElementById('char-badge').textContent = `CHARACTER ${String(c.n).padStart(2, '0')}`;
+  document.getElementById('char-name').textContent  = c.name;
+  document.getElementById('char-tags').textContent  = c.tags;
+  document.querySelectorAll('.face-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === carouselIdx);
+    b.setAttribute('aria-checked', i === carouselIdx ? 'true' : 'false');
+    b.tabIndex = i === carouselIdx ? 0 : -1;
   });
+  const img = document.getElementById('home-char');
+  const src = charImg(c.n);
+  if (img.getAttribute('src') !== src) {
+    img.classList.add('swap');
+    clearTimeout(charSwapT);
+    charSwapT = setTimeout(() => {
+      img.src = src;
+      img.alt = c.name;
+      img.classList.remove('swap');
+    }, REDUCED_MOTION ? 0 : 180);
+  } else {
+    img.alt = c.name;
+  }
+}
+function carouselGo(idx) {
+  carouselIdx = idx;
+  carouselRender();
+}
+function carouselStart() {
+  state.selectedCharacter = carouselIdx + 1;
+  saveDraft();
+  showMain();
 }
 function carouselPrev() {
   const total = document.querySelectorAll('.car-item').length;
@@ -272,31 +327,39 @@ function carouselNext() {
   carouselIdx = (carouselIdx + 1) % total;
   carouselRender();
 }
-function carouselTap(idx) {
-  if (idx === carouselIdx) {
-    state.selectedCharacter = idx + 1;
-    saveDraft();
-    showMain();
-  } else {
-    carouselIdx = idx;
-    carouselRender();
-  }
-}
+/* 스와이프 (터치·펜·마우스 드래그) */
+(function initCarouselSwipe() {
+  const el = document.getElementById('carousel');
+  if (!el) return;
+  let x0 = null, y0 = 0;
+  el.addEventListener('pointerdown', e => { x0 = e.clientX; y0 = e.clientY; });
+  el.addEventListener('pointerup', e => {
+    if (x0 === null) return;
+    const dx = e.clientX - x0, dy = e.clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      dx < 0 ? carouselNext() : carouselPrev();
+    }
+  });
+  el.addEventListener('pointercancel', () => { x0 = null; });
+})();
 
 /* ═══════════════════════════════════════════
    KEYBOARD
 ═══════════════════════════════════════════ */
 document.addEventListener('keydown', e => {
-  if (!document.getElementById('screen-select').classList.contains('hidden')) {
+  if (!document.getElementById('screen-select').classList.contains('hidden') && !document.querySelector('.sheet.open')) {
     if (e.key === 'ArrowLeft')  carouselPrev();
     if (e.key === 'ArrowRight') carouselNext();
-    if (e.key === 'Enter') {
-      state.selectedCharacter = carouselIdx + 1;
-      saveDraft();
-      showMain();
+    if (e.key === 'Enter' && !e.target.closest('button')) carouselStart();
+    if (e.target.classList && e.target.classList.contains('face-btn') && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      setTimeout(() => document.querySelector('.face-btn.active')?.focus(), 0);
     }
   }
-  if (e.key === 'Escape') { closeAddModal(); closePanel(); closePlayer(); }
+  if (e.key === 'Escape') {
+    closeAddModal(); closePanel(); closePlayer(); closeAbout(); closeShareDone();
+    if (document.body.classList.contains('previewing')) exitPreview();
+  }
 });
 
 /* ═══════════════════════════════════════════
@@ -312,6 +375,8 @@ function showMain() {
   renderCards();
 
   if (state.isViewOnly) {
+    document.getElementById('vb-text').textContent =
+      state.nickname ? `${state.nickname}님의 moodlist` : '공유된 moodlist예요';
     document.getElementById('view-banner').classList.add('show');
     document.getElementById('btn-edit').style.display = 'none';
     document.getElementById('btn-orbit').style.display = 'none';
@@ -332,17 +397,17 @@ function goSelect() {
   document.getElementById('screen-main').classList.add('hidden');
   document.getElementById('screen-select').classList.remove('hidden');
   if (state.selectedCharacter) {
-    carouselIdx = state.selectedCharacter - 1;
-    carouselRender();
+    carouselIdx = clamp(state.selectedCharacter - 1, 0, CHARACTERS.length - 1);
   }
+  carouselRender();
 }
 
 function applyCharacter() {
-  const n = state.selectedCharacter || 1;
-  loadImageWithFallback(document.getElementById('char-bg'),
-    [`character_0${n}_bg.png`, `character_0${n}.png`]);
-  loadImageWithFallback(document.getElementById('char-cutout'),
-    [`character_0${n}_cutout.png`, `character_0${n}.png`]);
+  const n = charOf(state.selectedCharacter).n;
+  setAccent(n);
+  loadImageWithFallback(document.getElementById('char-cutout'), [charImg(n)]);
+  document.getElementById('pl-face').src = charFace(n);
+  document.getElementById('pl-char').textContent = charOf(n).name;
 }
 
 /* ═══════════════════════════════════════════
@@ -353,7 +418,12 @@ function updateOverlay() {
   state.playlistTitle = document.getElementById('inp-title').value.trim();
   document.getElementById('pl-nick').textContent  = state.nickname || '';
   document.getElementById('pl-title').textContent = state.playlistTitle || '';
+  updateSongCount();
   saveDraft();
+}
+function updateSongCount() {
+  const n = state.songs.length;
+  document.getElementById('pl-count').textContent = n ? `♪ ${n} songs in orbit` : '';
 }
 function updatePanelInputs() {
   document.getElementById('inp-nick').value  = state.nickname || '';
@@ -427,7 +497,7 @@ function addSong() {
 
   // 기본 배치 (비율)
   const zones = [
-    { x: 0.02, y: 0.06 }, { x: 0.70, y: 0.04 },
+    { x: 0.02, y: 0.30 }, { x: 0.70, y: 0.04 },  // 좌상단은 작성자 정보 자리
     { x: 0.02, y: 0.50 }, { x: 0.70, y: 0.48 },
     { x: 0.33, y: 0.02 }, { x: 0.02, y: 0.86 },
     { x: 0.70, y: 0.84 }, { x: 0.33, y: 0.80 },
@@ -561,6 +631,7 @@ function songThumbMarkup(song) {
 }
 
 function renderSongPanel() {
+  updateSongCount();
   const list = document.getElementById('song-list-p');
   document.getElementById('s-count').textContent = state.songs.length;
   document.getElementById('s-max').textContent = MAX_SONGS;
@@ -855,6 +926,8 @@ if (HOVER_CAPABLE) {
 function generateShare() {
   if (orbitActive) stopOrbit(); // 현재 위치 확정
 
+  if (state.songs.length === 0) { showToast('노래를 한 곡 이상 추가해주세요'); return; }
+
   // 페이로드: [char, nick, title, [ [pcode, urlOrId, title, memo, x36, y36], ... ]]
   const payload = [
     state.selectedCharacter || 1,
@@ -872,20 +945,80 @@ function generateShare() {
   const encoded = LZString.compressToEncodedURIComponent(json);
   const url = `${location.origin}${location.pathname}?data=${encoded}`;
 
-  const box = document.getElementById('share-box');
-  box.dataset.url = url;
-  box.textContent = '클릭하여 링크 복사 — ' + url.slice(0, 64) + (url.length > 64 ? '...' : '');
-  box.classList.add('visible');
-  showToast('공유 링크가 생성됐어요');
+  openShareDone(url);
 }
 
-function copyShare() {
-  const url = document.getElementById('share-box').dataset.url;
-  if (!url) return;
-  navigator.clipboard.writeText(url)
-    .then(() => showToast('링크가 복사됐어요'))
-    .catch(() => prompt('아래 링크를 복사하세요:', url));
+/* SHARE COMPLETE */
+function openShareDone(url) {
+  closePanel();
+  const n = charOf(state.selectedCharacter).n;
+  document.getElementById('share-char').src = charImg(n);
+  const who = state.nickname ? `${state.nickname}님의 ` : '';
+  const title = state.playlistTitle ? `‘${state.playlistTitle}’` : 'moodlist';
+  document.getElementById('share-desc').textContent =
+    `${who}${title} · ${state.songs.length}곡이 링크에 담겼어요`;
+  document.getElementById('share-url').value = url;
+  document.getElementById('share-open').href = url;
+  const copyBtn = document.querySelector('.btn-copy');
+  copyBtn.textContent = '복사'; copyBtn.classList.remove('done');
+  document.getElementById('sheet-share').classList.add('open');
 }
+function closeShareDone() {
+  const el = document.getElementById('sheet-share');
+  if (el) el.classList.remove('open');
+}
+function copyShare() {
+  const url = document.getElementById('share-url').value;
+  if (!url) return;
+  const done = () => {
+    const b = document.querySelector('.btn-copy');
+    b.textContent = '복사됨'; b.classList.add('done');
+    showToast('링크가 복사됐어요');
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(done).catch(() => {
+      document.getElementById('share-url').select(); document.execCommand('copy'); done();
+    });
+  } else {
+    document.getElementById('share-url').select(); document.execCommand('copy'); done();
+  }
+}
+function nativeShare() {
+  const url = document.getElementById('share-url').value;
+  const title = state.playlistTitle || 'moodlist';
+  if (navigator.share) {
+    navigator.share({ title: `${title} — moodlist`, text: '내 moodlist를 들어봐요 🎧', url }).catch(() => {});
+  } else {
+    copyShare();
+  }
+}
+
+/* PREVIEW — 공개 화면과 똑같이 보기 */
+let previewOrbitWas = false;
+function enterPreview() {
+  closePanel(); closePlayer();
+  previewOrbitWas = orbitActive;
+  if (orbitActive) { orbitActive = false; stopOrbit(); }
+  state.isViewOnly = true;
+  document.body.classList.add('previewing');
+  renderCards();
+  if (state.songs.length > 0) toggleOrbit();
+}
+function exitPreview() {
+  if (!document.body.classList.contains('previewing')) return;
+  if (orbitActive) { orbitActive = false; stopOrbit(); }
+  document.getElementById('btn-orbit').classList.remove('active');
+  document.getElementById('orbit-row')?.classList.remove('active');
+  state.isViewOnly = false;
+  document.body.classList.remove('previewing');
+  closePlayer();
+  renderCards();
+  if (previewOrbitWas) toggleOrbit();
+}
+
+/* ABOUT */
+function openAbout()  { document.getElementById('sheet-about').classList.add('open'); }
+function closeAbout() { const el = document.getElementById('sheet-about'); if (el) el.classList.remove('open'); }
 
 function decodeShareData(raw) {
   const json = window.LZString ? LZString.decompressFromEncodedURIComponent(raw) : null;

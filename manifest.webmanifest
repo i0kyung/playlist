@@ -1,0 +1,15 @@
+{
+  "name": "moodlist",
+  "short_name": "moodlist",
+  "description": "좋아하는 음악을 모아, 당신만의 moodlist를 만들어보세요.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fafafc",
+  "theme_color": "#fafafc",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
